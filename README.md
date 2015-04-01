@@ -57,8 +57,9 @@ INSERT CONTACT INFORMATION HERE
 
 # Development #
 
-* Add options for creating the bds.config file
-* Add blacklist/LCR/lowMappability filters
+* Add checkpoints
+* Add VCMM variant caller
+* Add hg38 genome
 
 # More #
 
