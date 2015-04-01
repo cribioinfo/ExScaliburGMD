@@ -1,0 +1,201 @@
+#!/usr/bin/env bds
+
+void Run_AlignmentRefinement(string sample, string aligner, string projdir, string sampleConfig, string flagConfig, string refConfig, string softwareConfig) {
+
+	println info("ExScaliburGMD::04_Run_AlignmentRefinement", "START | sm=$sample | aln=$aligner")
+
+
+	//------------- INCLUDE -------------//
+
+	include "../lib/print.bds"
+	//include "../lib/header.bds"
+	include "../lib/samtools.bds"
+	include "../lib/picard.bds"
+	include "../lib/bedtools.bds"
+	include "../lib/gatk.bds"
+	include "../lib/rgmap.bds"
+
+	//sys source "config/module.rc"
+
+	//------------- MAIN -------------//
+
+	// initialize
+	string{} smParam = config(sampleConfig)
+	string{} flagParam = config(flagConfig)
+	string{} refParam = config(refConfig)
+	string{} smFailMap	
+	string[] tids
+	string[] tid
+	string infile
+	string outfile
+	string resultdir
+	string outdir
+	string logdir
+	string logfile
+	string refGenome
+	string targetfile
+	string chrom
+	string caller
+	string flagfile
+	int paired = 0
+	int runRmDup = 0
+	int runRmDupPicard = 0
+	int runRmDupSamtools = 0
+	int runGatkRealn = 0
+	int runGatkRecal = 0
+	int runGatkCallableLoci = 0
+	int runTarget = 0
+	int runMetrics = 0
+	int forceIn = 0
+
+
+	// assign values
+	if(smParam.hasKey("paired")) { paired = smParam{"paired"}.parseInt() }
+	if(smParam.hasKey("sample_result_dir")) { resultdir = smParam{"sample_result_dir"} }
+	if(smParam.hasKey("sample_log_dir")) { logdir = smParam{"sample_log_dir"} }
+	if((smParam.hasKey("bwaaln_alnfile")) && (aligner=="bwaaln")) { infile = smParam{"bwaaln_alnfile"} }
+	if((smParam.hasKey("bwamem_alnfile")) && (aligner=="bwamem")) { infile = smParam{"bwamem_alnfile"} }
+	if((smParam.hasKey("novoalign_alnfile")) && (aligner=="novoalign")) { infile = smParam{"novoalign_alnfile"} }
+	if(smParam.hasKey("qc_flagfile")) { smFailMap = BuildRGmap(smParam{"qc_flagfile"}, "SM", "FAIL") }
+	if(smParam.hasKey("force_include")) { forceIn = smParam{"force_include"}.parseInt() }
+
+	if(flagParam.hasKey("run_remove_duplicates")) { runRmDup = flagParam{"run_remove_duplicates"}.parseInt() }
+	if(flagParam.hasKey("run_rmdup_picard")) { runRmDupPicard = flagParam{"run_rmdup_picard"}.parseInt() }
+	if(flagParam.hasKey("run_rmdup_samtools")) { runRmDupSamtools = flagParam{"run_rmdup_samtools"}.parseInt() }
+	if(flagParam.hasKey("run_gatk_indel_realn")) { runGatkRealn = flagParam{"run_gatk_indel_realn"}.parseInt() }
+	if(flagParam.hasKey("run_gatk_bqsr")) { runGatkRecal = flagParam{"run_gatk_bqsr"}.parseInt() }
+	if(flagParam.hasKey("run_gatk_callableloci")) { runGatkCallableLoci = flagParam{"run_gatk_callableloci"}.parseInt() }
+	if(flagParam.hasKey("run_target")) { runTarget = flagParam{"run_target"}.parseInt() }
+	if(flagParam.hasKey("run_collect_alignment_metrics")) { runMetrics = flagParam{"run_collect_alignment_metrics"}.parseInt() }
+	
+	if(refParam.hasKey("hg19_genome")) { refGenome = refParam{"hg19_genome"} }
+	if(refParam.hasKey("hg19_target")) { targetfile = refParam{"hg19_target"} }
+
+	if(! resultdir.exists()) { resultdir.mkdir() }
+	outdir = resultdir + "/alignment"
+	flagfile = resultdir + "/sample.exclude"
+
+	// check whethe this rg passes QC
+	if(forceIn == 1) {
+			if(flagfile.exists()) { flagfile.delete() }
+		}
+	else if(forceIn == 0) {
+		if((sample == "") || (smFailMap.hasKey("$sample"))) { 
+			println info("ExScaliburGMD::04_Run_AlignmentRefinement", "sm=$sample | aln=$aligner | QC failed! Skip")
+			return
+		}
+	}
+
+	// remove duplicates
+	if(runRmDup == 1) {
+		wait tid
+
+		outfile = infile.removeExt(".bam") + ".dedup.bam"
+		if(runRmDupPicard == 1) { 
+			util := "MarkDuplicates"
+			logfile = sample + "." + aligner + ".picard_" + util + ".log"
+			tid = picard(sample, util, refGenome, outdir + "/tmp", infile, outfile, outdir, logfile, logdir, softwareConfig)
+		}
+		else if(runRmDupSamtools == 1) { 
+			util := "RemoveDuplicates"
+			logfile = sample + "." + aligner + ".samtools_" + util + ".log"
+			tid = samtools(sample, util, refGenome, targetfile, paired, infile, outfile, outdir, logfile, logdir, softwareConfig)
+		}
+
+		infile = outfile
+
+		tids += tid
+	}
+
+	// run GATK indel realignment
+	if(runGatkRealn == 1) {
+		wait tid
+
+		outfile = infile.removeExt(".bam") + ".realn.bam"
+		util := "IndelRealn"
+		logfile = sample + "." + aligner + ".gatk_" + util + ".log"
+		tid = gatk(sample, util, caller, chrom, outdir + "/tmp", targetfile, infile, outfile, outdir, logfile, logdir, softwareConfig, refConfig)
+
+		infile = outfile
+
+		tids += tid
+	}		
+
+	// run GATK BQSR
+	if(runGatkRecal == 1) {
+		wait tid
+
+		string gatkRecalTarget = ""
+		if(runTarget == 1) { gatkRecalTarget = targetfile  }
+
+		outfile = infile.removeExt(".bam") + ".recal.bam"
+		util := "BQSR"
+		logfile = sample + "." + aligner + ".gatk_" + util + ".log"
+		tid = gatk(sample, util, caller, chrom, outdir + "/tmp", targetfile, infile, outfile, outdir, logfile, logdir, softwareConfig, refConfig)
+
+		infile = outfile
+
+		tids += tid
+	}	
+
+	// collect metrics of the final infile 
+	if(runMetrics == 1) {
+		wait tid 
+		outdirNew := resultdir + "/alignment_metrics"
+		tidNew := RunSampleAlnMetrics(sample, aligner, targetfile, infile, outdirNew, logdir, softwareConfig)
+	}
+
+	// detect callable regions
+	if(runGatkCallableLoci == 1) {
+		wait tid 
+
+		logfile = sample + "." + aligner + ".gatk_callable.log"
+		util := "CallableLoci"
+		tid = gatk(sample, util, caller, chrom, outdir + "/tmp", targetfile, infile, infile.removeExt(".bam"), outdir, logfile, logdir, softwareConfig, refConfig) 
+
+		tids += tid
+	}
+
+	wait tids
+
+	println info("ExScaliburGMD::04_Run_AlignmentRefinement", "END | sm=$sample | aln=$aligner")
+
+}
+
+
+//------------- FUNCTION -------------//
+
+string[] RunSampleAlnMetrics(string sample, string aligner, string targetfile, string infile, string outdir, string logdir, string softwareConfig) {
+
+	// initialize
+	string[] tids
+	string[] tid
+	string modname = "ExScaliburGMD::04_Run_AlignmentRefinement::RunSampleAlnMetrics"
+	string outfile
+	string logfile
+	string util
+	
+	// println info(modname, "START | sm=$sample | metrics=picard,bedtools")
+
+	// picard collect metrics
+	util = "CollectMultipleMetrics"
+	outfile = outdir + "/" + infile.split("/").pop()
+	logfile = sample + "." + aligner + ".picard_" + util + ".log"
+	tid = picard(sample, util, refGenome, outdir + "/tmp", infile, outfile, outdir, logfile, logdir, softwareConfig)
+	tids += tid
+
+	// bedtools coverage
+	util = "coverage"
+	outfile += ".total_coverage"
+	logfile = sample + "." + aligner + ".bedtools_" + util + ".log"
+	tid = bedtools(sample, util, refGenome, targetfile, infile, outfile, outdir, logfile, logdir, softwareConfig)
+
+	// printArray(tid)
+	
+	tids += tid
+
+	// wait tids
+	// println info(modname, "END | sm=$sample | metrics=picard,bedtools")
+
+	return tids
+}

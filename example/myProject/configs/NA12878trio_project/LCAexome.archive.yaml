@@ -1,0 +1,1228 @@
+---
+data:
+  -
+    alignment_metrics:
+      -
+        action: copy
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_samples/NA12878/alignment_metrics
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/alignment_metrics
+        type: dir
+    alignments:
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/NA12878trio_samples/NA12878/alignment/NA12878.bwaaln.merged.dedup.realn.recal.loci.callable.bed
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/alignment/NA12878.bwaaln.merged.dedup.realn.recal.loci.callable.bed
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/NA12878trio_samples/NA12878/alignment/NA12878.bwamem.merged.dedup.realn.recal.loci.callable.bed
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/alignment/NA12878.bwamem.merged.dedup.realn.recal.loci.callable.bed
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/NA12878trio_samples/NA12878/alignment/NA12878.novoalign.merged.dedup.realn.recal.loci.callable.bed
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/alignment/NA12878.novoalign.merged.dedup.realn.recal.loci.callable.bed
+        type: file
+    configs:
+      -
+        action: copy
+        from: /group/rbao/ExScaliburGMD/example/myProject/configs
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/configs
+        type: dir
+    qc_reports:
+      -
+        action: copy
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_samples/NA12878/qc_reports
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/qc_reports
+        type: dir
+      -
+        action: copy
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_samples/NA12878/NA12878.qc_summary.tsv
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/qc_reports/NA12878.qc_summary.tsv
+        type: file
+      -
+        action: copy
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_samples/NA12878/NA12878.qc_flag.tsv
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/qc_reports/NA12878.qc_flag.tsv
+        type: file
+    sample: NA12878
+    variant_annotation:
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.freebayes.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.freebayes.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.freebayes.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.freebayes.flt.anno.exonic.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.gatkhc.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.gatkhc.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.gatkhc.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.gatkhc.flt.anno.exonic.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.gatkug.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.gatkug.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.gatkug.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.gatkug.flt.anno.exonic.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.ivc.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.ivc.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.ivc.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.ivc.flt.anno.exonic.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.mpileup.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.mpileup.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.mpileup.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.mpileup.flt.anno.exonic.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.platypus.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.platypus.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.platypus.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.platypus.flt.anno.exonic.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.freebayes.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.freebayes.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.freebayes.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.freebayes.flt.anno.exonic.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.gatkhc.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.gatkhc.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.gatkhc.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.gatkhc.flt.anno.exonic.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.gatkug.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.gatkug.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.gatkug.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.gatkug.flt.anno.exonic.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.ivc.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.ivc.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.ivc.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.ivc.flt.anno.exonic.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.mpileup.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.mpileup.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.mpileup.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.mpileup.flt.anno.exonic.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.platypus.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.platypus.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.platypus.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.platypus.flt.anno.exonic.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.freebayes.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.freebayes.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.freebayes.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.freebayes.flt.anno.exonic.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.gatkhc.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.gatkhc.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.gatkhc.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.gatkhc.flt.anno.exonic.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.gatkug.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.gatkug.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.gatkug.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.gatkug.flt.anno.exonic.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.ivc.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.ivc.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.ivc.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.ivc.flt.anno.exonic.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.mpileup.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.mpileup.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.mpileup.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.mpileup.flt.anno.exonic.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.platypus.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.platypus.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.platypus.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.platypus.flt.anno.exonic.txt
+        type: file
+    variant_calls:
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.freebayes.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.freebayes.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.freebayes.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.freebayes.flt.vcf.idx
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.gatkhc.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.gatkhc.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.gatkhc.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.gatkhc.flt.vcf.idx
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.gatkug.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.gatkug.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.gatkug.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.gatkug.flt.vcf.idx
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.ivc.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.ivc.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.ivc.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.ivc.flt.vcf.idx
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.mpileup.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.mpileup.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.mpileup.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.mpileup.flt.vcf.idx
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.platypus.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.platypus.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.platypus.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.platypus.flt.vcf.idx
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.freebayes.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.freebayes.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.freebayes.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.freebayes.flt.vcf.idx
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.gatkhc.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.gatkhc.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.gatkhc.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.gatkhc.flt.vcf.idx
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.gatkug.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.gatkug.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.gatkug.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.gatkug.flt.vcf.idx
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.ivc.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.ivc.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.ivc.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.ivc.flt.vcf.idx
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.mpileup.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.mpileup.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.mpileup.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.mpileup.flt.vcf.idx
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.platypus.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.platypus.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.platypus.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.platypus.flt.vcf.idx
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.freebayes.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.freebayes.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.freebayes.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.freebayes.flt.vcf.idx
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.gatkhc.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.gatkhc.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.gatkhc.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.gatkhc.flt.vcf.idx
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.gatkug.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.gatkug.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.gatkug.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.gatkug.flt.vcf.idx
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.ivc.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.ivc.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.ivc.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.ivc.flt.vcf.idx
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.mpileup.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.mpileup.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.mpileup.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.mpileup.flt.vcf.idx
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.platypus.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.platypus.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.platypus.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.platypus.flt.vcf.idx
+        type: file
+  -
+    alignment_metrics:
+      -
+        action: copy
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_samples/NA12891/alignment_metrics
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/alignment_metrics
+        type: dir
+    alignments:
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/NA12878trio_samples/NA12891/alignment/NA12891.bwaaln.merged.dedup.realn.recal.loci.callable.bed
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/alignment/NA12891.bwaaln.merged.dedup.realn.recal.loci.callable.bed
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/NA12878trio_samples/NA12891/alignment/NA12891.bwamem.merged.dedup.realn.recal.loci.callable.bed
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/alignment/NA12891.bwamem.merged.dedup.realn.recal.loci.callable.bed
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/NA12878trio_samples/NA12891/alignment/NA12891.novoalign.merged.dedup.realn.recal.loci.callable.bed
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/alignment/NA12891.novoalign.merged.dedup.realn.recal.loci.callable.bed
+        type: file
+    configs:
+      -
+        action: copy
+        from: /group/rbao/ExScaliburGMD/example/myProject/configs
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/configs
+        type: dir
+    qc_reports:
+      -
+        action: copy
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_samples/NA12891/qc_reports
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/qc_reports
+        type: dir
+      -
+        action: copy
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_samples/NA12891/NA12891.qc_summary.tsv
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/qc_reports/NA12891.qc_summary.tsv
+        type: file
+      -
+        action: copy
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_samples/NA12891/NA12891.qc_flag.tsv
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/qc_reports/NA12891.qc_flag.tsv
+        type: file
+    sample: NA12891
+    variant_annotation:
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.freebayes.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.freebayes.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.freebayes.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.freebayes.flt.anno.exonic.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.gatkhc.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.gatkhc.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.gatkhc.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.gatkhc.flt.anno.exonic.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.gatkug.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.gatkug.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.gatkug.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.gatkug.flt.anno.exonic.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.ivc.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.ivc.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.ivc.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.ivc.flt.anno.exonic.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.mpileup.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.mpileup.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.mpileup.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.mpileup.flt.anno.exonic.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.platypus.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.platypus.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.platypus.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.platypus.flt.anno.exonic.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.freebayes.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.freebayes.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.freebayes.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.freebayes.flt.anno.exonic.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.gatkhc.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.gatkhc.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.gatkhc.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.gatkhc.flt.anno.exonic.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.gatkug.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.gatkug.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.gatkug.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.gatkug.flt.anno.exonic.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.ivc.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.ivc.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.ivc.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.ivc.flt.anno.exonic.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.mpileup.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.mpileup.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.mpileup.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.mpileup.flt.anno.exonic.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.platypus.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.platypus.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.platypus.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.platypus.flt.anno.exonic.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.freebayes.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.freebayes.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.freebayes.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.freebayes.flt.anno.exonic.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.gatkhc.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.gatkhc.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.gatkhc.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.gatkhc.flt.anno.exonic.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.gatkug.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.gatkug.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.gatkug.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.gatkug.flt.anno.exonic.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.ivc.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.ivc.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.ivc.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.ivc.flt.anno.exonic.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.mpileup.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.mpileup.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.mpileup.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.mpileup.flt.anno.exonic.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.platypus.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.platypus.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.platypus.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.platypus.flt.anno.exonic.txt
+        type: file
+    variant_calls:
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.freebayes.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.freebayes.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.freebayes.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.freebayes.flt.vcf.idx
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.gatkhc.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.gatkhc.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.gatkhc.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.gatkhc.flt.vcf.idx
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.gatkug.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.gatkug.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.gatkug.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.gatkug.flt.vcf.idx
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.ivc.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.ivc.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.ivc.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.ivc.flt.vcf.idx
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.mpileup.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.mpileup.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.mpileup.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.mpileup.flt.vcf.idx
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.platypus.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.platypus.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.platypus.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.platypus.flt.vcf.idx
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.freebayes.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.freebayes.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.freebayes.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.freebayes.flt.vcf.idx
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.gatkhc.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.gatkhc.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.gatkhc.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.gatkhc.flt.vcf.idx
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.gatkug.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.gatkug.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.gatkug.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.gatkug.flt.vcf.idx
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.ivc.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.ivc.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.ivc.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.ivc.flt.vcf.idx
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.mpileup.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.mpileup.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.mpileup.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.mpileup.flt.vcf.idx
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.platypus.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.platypus.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.platypus.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.platypus.flt.vcf.idx
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.freebayes.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.freebayes.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.freebayes.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.freebayes.flt.vcf.idx
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.gatkhc.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.gatkhc.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.gatkhc.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.gatkhc.flt.vcf.idx
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.gatkug.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.gatkug.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.gatkug.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.gatkug.flt.vcf.idx
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.ivc.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.ivc.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.ivc.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.ivc.flt.vcf.idx
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.mpileup.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.mpileup.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.mpileup.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.mpileup.flt.vcf.idx
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.platypus.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.platypus.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.platypus.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.platypus.flt.vcf.idx
+        type: file
+  -
+    alignment_metrics:
+      -
+        action: copy
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_samples/NA12892/alignment_metrics
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/alignment_metrics
+        type: dir
+    alignments:
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/NA12878trio_samples/NA12892/alignment/NA12892.bwaaln.merged.dedup.realn.recal.loci.callable.bed
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/alignment/NA12892.bwaaln.merged.dedup.realn.recal.loci.callable.bed
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/NA12878trio_samples/NA12892/alignment/NA12892.bwamem.merged.dedup.realn.recal.loci.callable.bed
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/alignment/NA12892.bwamem.merged.dedup.realn.recal.loci.callable.bed
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/NA12878trio_samples/NA12892/alignment/NA12892.novoalign.merged.dedup.realn.recal.loci.callable.bed
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/alignment/NA12892.novoalign.merged.dedup.realn.recal.loci.callable.bed
+        type: file
+    configs:
+      -
+        action: copy
+        from: /group/rbao/ExScaliburGMD/example/myProject/configs
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/configs
+        type: dir
+    qc_reports:
+      -
+        action: copy
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_samples/NA12892/qc_reports
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/qc_reports
+        type: dir
+      -
+        action: copy
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_samples/NA12892/NA12892.qc_summary.tsv
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/qc_reports/NA12892.qc_summary.tsv
+        type: file
+      -
+        action: copy
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_samples/NA12892/NA12892.qc_flag.tsv
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/qc_reports/NA12892.qc_flag.tsv
+        type: file
+    sample: NA12892
+    variant_annotation:
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.freebayes.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.freebayes.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.freebayes.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.freebayes.flt.anno.exonic.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.gatkhc.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.gatkhc.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.gatkhc.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.gatkhc.flt.anno.exonic.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.gatkug.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.gatkug.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.gatkug.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.gatkug.flt.anno.exonic.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.ivc.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.ivc.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.ivc.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.ivc.flt.anno.exonic.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.mpileup.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.mpileup.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.mpileup.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.mpileup.flt.anno.exonic.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.platypus.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.platypus.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.platypus.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.platypus.flt.anno.exonic.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.freebayes.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.freebayes.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.freebayes.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.freebayes.flt.anno.exonic.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.gatkhc.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.gatkhc.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.gatkhc.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.gatkhc.flt.anno.exonic.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.gatkug.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.gatkug.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.gatkug.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.gatkug.flt.anno.exonic.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.ivc.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.ivc.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.ivc.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.ivc.flt.anno.exonic.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.mpileup.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.mpileup.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.mpileup.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.mpileup.flt.anno.exonic.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.platypus.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.platypus.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.platypus.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.platypus.flt.anno.exonic.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.freebayes.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.freebayes.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.freebayes.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.freebayes.flt.anno.exonic.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.gatkhc.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.gatkhc.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.gatkhc.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.gatkhc.flt.anno.exonic.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.gatkug.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.gatkug.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.gatkug.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.gatkug.flt.anno.exonic.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.ivc.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.ivc.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.ivc.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.ivc.flt.anno.exonic.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.mpileup.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.mpileup.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.mpileup.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.mpileup.flt.anno.exonic.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.platypus.flt.anno.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.platypus.flt.anno.txt
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.platypus.flt.anno.exonic.txt
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.platypus.flt.anno.exonic.txt
+        type: file
+    variant_calls:
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.freebayes.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.freebayes.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.freebayes.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.freebayes.flt.vcf.idx
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.gatkhc.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.gatkhc.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.gatkhc.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.gatkhc.flt.vcf.idx
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.gatkug.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.gatkug.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.gatkug.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.gatkug.flt.vcf.idx
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.ivc.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.ivc.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.ivc.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.ivc.flt.vcf.idx
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.mpileup.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.mpileup.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.mpileup.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.mpileup.flt.vcf.idx
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.platypus.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.platypus.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwaaln.platypus.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwaaln.platypus.flt.vcf.idx
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.freebayes.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.freebayes.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.freebayes.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.freebayes.flt.vcf.idx
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.gatkhc.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.gatkhc.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.gatkhc.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.gatkhc.flt.vcf.idx
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.gatkug.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.gatkug.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.gatkug.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.gatkug.flt.vcf.idx
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.ivc.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.ivc.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.ivc.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.ivc.flt.vcf.idx
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.mpileup.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.mpileup.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.mpileup.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.mpileup.flt.vcf.idx
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.platypus.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.platypus.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.bwamem.platypus.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.bwamem.platypus.flt.vcf.idx
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.freebayes.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.freebayes.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.freebayes.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.freebayes.flt.vcf.idx
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.gatkhc.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.gatkhc.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.gatkhc.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.gatkhc.flt.vcf.idx
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.gatkug.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.gatkug.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.gatkug.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.gatkug.flt.vcf.idx
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.ivc.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.ivc.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.ivc.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.ivc.flt.vcf.idx
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.mpileup.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.mpileup.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.mpileup.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.mpileup.flt.vcf.idx
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.platypus.flt.vcf
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.platypus.flt.vcf
+        type: file
+      -
+        action: move
+        from: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_calls/NA12878trio.novoalign.platypus.flt.vcf.idx
+        to: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive/variant_calls/NA12878trio.novoalign.platypus.flt.vcf.idx
+        type: file
+directory: /group/rbao/ExScaliburGMD/example/myProject/archive/NA12878trio_archive
+project: NA12878trio

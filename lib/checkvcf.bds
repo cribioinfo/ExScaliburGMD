@@ -1,0 +1,24 @@
+#!/usr/bin/env bds
+
+include "print.bds"
+include "getmem.bds"
+
+int CheckVCF(string[] infiles) {
+
+	int flag = 0
+	string lastline
+
+	for(string in : infiles) {
+		lastline = sys tail -1 $in | cut -f 1
+		//println "lastline = $lastline"
+		// less stringent checking...if you don't care about chrY or chrUn
+		if(!(lastline.startsWith("chrUn") || lastline.startsWith("chrY"))) {
+			flag++
+			println "CheckVCF: Error! $in is truncated. The last line is $lastline, whereas chrUn_gl000249/chrY is expected.\n"
+			
+		}
+	}
+
+	return flag
+}
+

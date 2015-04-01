@@ -1,0 +1,668 @@
+#!/usr/bin/env bds
+
+include "print.bds"
+include "getmem.bds"
+include "checkvcf.bds"
+
+string[] gatk(string sample, string util, string caller, string chr, string tmpdir, string targetfile, string infile, string outfile, string outdir, string logfile, string logdir, string softwareConfig, string refConfig) {
+
+	//include "java.bds"
+	baseJava := "java -XX:ParallelGCThreads=2 "
+
+	// initialize
+	string{} swParam = config(softwareConfig)
+	string{} refParam = config(refConfig)
+	string[] modlist
+	string modname = "ExScaliburGMD::gatk"
+	string modsource
+	string modload = ""
+	string gatkExe
+	string samtoolsExe
+	string vcftoolsExe
+	string vcflibExe
+	string vtExe
+	string vcfsorterExe
+	string tabixExe
+	string bgzipExe
+	string igvToolsExe
+	string javaMaxMemStr = ""
+	int threads = 1
+	int memory = 1
+	int splitByBin = 0
+
+	// println info(modname, "START | sm=$sample | util=$util")
+
+	string[] tids
+	string[] infiles = infile.split(",")
+	string[] chrs
+	string mode
+	string inputString = ""
+	string knownVarParam = ""
+	string targetParam = ""
+	string refGenome
+	string refGenomeDict
+	string chrom
+	string dbsnp
+	string g1000indel
+	string g1000snp
+	string mills
+	string hapmap
+	string omni
+	string target // will be overitten by the opt targetfile
+	string tid
+	int infileTotal
+	int maxRecordsInMem
+	int maxDepth
+	int minDepth
+	int maxLowMAPQ
+	int minBaseQ
+	int minMapQ
+	int minDepthForLowMAPQ
+	int emitConf
+	int callConf
+	int dcov
+	int minIndelCnt
+	int ploidy = 2
+	real minIndelFrac
+	real maxFractionOfReadsWithLowMAPQ
+
+	// assign values
+	if(swParam.hasKey("java_module")) { modlist.push(swParam{"java_module"}) }
+	if(swParam.hasKey("main_ploidy")) { ploidy = swParam{"main_ploidy"}.parseInt() }
+	if(swParam.hasKey("main_module_source")) { modsource = swParam{"main_module_source"} }
+	if(swParam.hasKey("main_split_by_bin")) { splitByBin = swParam{"main_split_by_bin"}.parseInt() }
+
+	if(swParam.hasKey("gatk_variant_call_mode")) { mode = swParam{"gatk_variant_call_mode"} }
+	if(swParam.hasKey("main_min_base_qual")) { minBaseQ = swParam{"main_min_base_qual"}.parseInt() }
+	if(swParam.hasKey("main_min_map_qual")) { minMapQ = swParam{"main_min_map_qual"}.parseInt() }
+	if(swParam.hasKey("gatk_exe")) { gatkExe = swParam{"gatk_exe"} }
+	if(swParam.hasKey("gatk_module")) { modlist.push(swParam{"gatk_module"}) }
+	if(swParam.hasKey("gatk_threads")) { threads = swParam{"gatk_threads"}.parseInt() }
+	if(swParam.hasKey("gatk_mem")) { memory = swParam{"gatk_mem"}.parseInt() }
+	if(swParam.hasKey("gatk_emit_conf")) { emitConf = swParam{"gatk_emit_conf"}.parseInt() }
+	if(swParam.hasKey("gatk_call_conf")) { callConf = swParam{"gatk_call_conf"}.parseInt() }
+	if(swParam.hasKey("gatk_dcov")) { dcov = swParam{"gatk_dcov"}.parseInt() }
+	if(swParam.hasKey("gatk_min_indel_count")) { minIndelCnt = swParam{"gatk_min_indel_count"}.parseInt() }
+	if(swParam.hasKey("gatk_min_indel_frac")) { minIndelFrac = swParam{"gatk_min_indel_frac"}.parseReal() }
+	if(swParam.hasKey("gatk_min_lowMAPQ_depth")) { minDepthForLowMAPQ = swParam{"gatk_min_lowMAPQ_depth"}.parseInt() }
+	if(swParam.hasKey("gatk_min_callable_depth")) { minDepth = swParam{"gatk_min_callable_depth"}.parseInt() }
+	if(swParam.hasKey("gatk_max_callable_depth")) { maxDepth = swParam{"gatk_max_callable_depth"}.parseInt() }
+	if(swParam.hasKey("gatk_max_lowMAPQ_frac")) { maxFractionOfReadsWithLowMAPQ = swParam{"gatk_max_lowMAPQ_frac"}.parseReal() }
+	if(swParam.hasKey("gatk_max_lowMAPQ")) { maxLowMAPQ = swParam{"gatk_max_lowMAPQ"}.parseInt() }
+	if(swParam.hasKey("samtools_exe")) { samtoolsExe = swParam{"samtools_exe"} }
+	if(swParam.hasKey("samtools_module")) { modlist.push(swParam{"samtools_module"}) }
+	if(swParam.hasKey("vcftools_exe")) { vcftoolsExe = swParam{"vcftools_exe"} }
+	if(swParam.hasKey("vcftools_module")) { modlist.push(swParam{"vcftools_module"}) }
+	if(swParam.hasKey("vcflib_exe")) { vcflibExe = swParam{"vcflib_exe"} }
+	if(swParam.hasKey("vcflib_module")) { modlist.push(swParam{"vcflib_module"}) }
+	if(swParam.hasKey("vt_exe")) { vtExe = swParam{"vt_exe"} }
+	if(swParam.hasKey("vt_module")) { modlist.push(swParam{"vt_module"}) }
+	if(swParam.hasKey("vcfsorter_exe")) { vcfsorterExe = swParam{"vcfsorter_exe"} }
+	if(swParam.hasKey("vcfsorter_module")) { modlist.push(swParam{"vcfsorter_module"}) }
+	if(swParam.hasKey("tabix_exe")) { tabixExe = swParam{"tabix_exe"} }
+	if(swParam.hasKey("bgzip_exe")) { bgzipExe = swParam{"bgzip_exe"} }
+	if(swParam.hasKey("tabix_module")) { modlist.push(swParam{"tabix_module"}) }
+	if(swParam.hasKey("igvtools_exe")) { igvToolsExe = swParam{"igvtools_exe"} }
+	if(swParam.hasKey("igvtools_module")) { modlist.push(swParam{"igvtools_module"}) }
+
+	if(refParam.hasKey("hg19_genome")) { refGenome = refParam{"hg19_genome"} }
+	if(refParam.hasKey("hg19_chrs")) { chrs = refParam{"hg19_chrs"}.split(",") }
+	if(refParam.hasKey("hg19_dbsnp")) { dbsnp = refParam{"hg19_dbsnp"} }
+	if(refParam.hasKey("hg19_g1000indel")) { g1000indel = refParam{"hg19_g1000indel"} }
+	if(refParam.hasKey("hg19_g1000snp")) { g1000snp = refParam{"hg19_g1000snp"} }
+	if(refParam.hasKey("hg19_mills")) { mills = refParam{"hg19_mills"} }
+	if(refParam.hasKey("hg19_hapmap")) { hapmap = refParam{"hg19_hapmap"} }
+	if(refParam.hasKey("hg19_omni")) { omni = refParam{"hg19_omni"} }
+	if(refParam.hasKey("hg19_target")) { target = refParam{"hg19_target"} }
+	if(refParam.hasKey("hg19_genomedict")) { refGenomeDict = refParam{"hg19_genomedict"} }
+
+	if(modsource.length() > 0) { modload = ". $modsource; " }
+	for(string mod : modlist) { modload += "module load $mod; " }
+	javaMaxMemStr = " -Xmx$memory" + "G"  // note java must have the total memory
+	memory = getmem((memory+1) * G, threads)  // get per slot mem for task (SGE only)
+
+	infileTotal = infiles.size()
+	for(string in : infiles) { inputString += " I=$in" }
+	if(targetfile.length() > 0) { target = targetfile }
+	
+	// prepare target input
+	if(chrom.length() > 0) { targetParam += " -L $chrom" }
+	if(target.length() > 0) { targetParam += " -L $target" }
+
+	// run start
+	if(! outdir.isDir()) { outdir.mkdir() }
+	if(! logdir.isDir()) { logdir.mkdir() }	
+	if(! tmpdir.isDir()) { tmpdir.mkdir() }
+
+	// launch various gatk utils
+	if(infileTotal == 1) {
+
+		if(util == "IndelRealn") {
+
+			// prepare known variant input
+			if(g1000indel.length() > 0) { knownVarParam +=  " -known $g1000indel"; }
+			if(mills.length() > 0) { knownVarParam += " -known $mills"; }
+
+			tidsNew := GatkIndelRealn(sample, infile, outfile, logfile, logdir, tmpdir, modname, modload, threads, memory, gatkExe, samtoolsExe, javaMaxMemStr, refGenome, targetParam, knownVarParam)
+
+			tids += tidsNew
+		}
+		else if(util == "BQSR") {
+
+			// prepare known variant input
+			if(g1000indel.length() > 0) { knownVarParam =  " -knownSites $g1000indel"; }
+			if(mills.length() > 0) { knownVarParam += " -knownSites $mills"; }
+			if(dbsnp.length() > 0) { knownVarParam += " -knownSites $dbsnp" }
+
+			tidsNew := GatkBQSR(sample, infile, outfile, logfile, logdir, tmpdir, modname, modload, threads, memory, gatkExe, samtoolsExe, javaMaxMemStr, refGenome, targetParam, knownVarParam)
+
+			tids += tidsNew
+		}
+		else if(util == "CallableLoci") {
+
+			tidsNew := GatkCallableLoci(sample, infile, outfile, logfile, logdir, tmpdir, modname, modload, threads, memory, gatkExe, samtoolsExe, javaMaxMemStr, refGenome, targetParam, knownVarParam, maxDepth, minDepth, maxFractionOfReadsWithLowMAPQ, maxLowMAPQ, minBaseQ, minMapQ, minDepthForLowMAPQ)
+
+			tids += tidsNew
+		}
+		else if(util == "VarFlt") {
+
+			tidsNew := GatkVariantFlt(sample, infile, outfile, logfile, logdir, tmpdir, modname, modload, threads, memory, gatkExe, samtoolsExe, vcftoolsExe, tabixExe, bgzipExe, javaMaxMemStr, refGenome, caller, minDepth)
+
+			tids += tidsNew
+		}
+	}
+	else if (infileTotal > 1){
+		if((util == "VarConcat") || (util == "VarMerge")) {
+
+			tidsNew := GatkVariantCombine(sample, infile, outfile, logfile, logdir, tmpdir, modname, modload, threads, memory, gatkExe, samtoolsExe, javaMaxMemStr, refGenome, util, caller)
+
+			tids += tidsNew
+		}
+	}
+
+	// call variants
+	if(util == "VarCall") {
+
+		// prepare known variant input
+		if(dbsnp.length() > 0) { knownVarParam += " -D $dbsnp" }
+
+		if(caller == "gatkhc") {
+			if(mode == "single"){ 
+				if(infileTotal == 1) {
+
+				}
+				else if(infileTotal >= 2) { 
+					error "$modname: mode is single yet infiles are more than one\n" 
+				}
+			}
+			else if(mode == "multi") {
+				// if scatter-gather mode is on, each split job uses 1 thread to avoid thread overwhelming on the cluster
+				threadsNew := threads
+				memoryNew := memory
+				if(splitByBin == 1) { 
+					threadsNew = 1 
+					memoryNew = memory * threads
+				}
+				
+				if(infileTotal == 1) {
+					// run HC on each sample to generate gvcf file
+					// per-sample variant calling only applies for HC; UC still performs multi-sample variant calling)
+					// println "gatkVariantCall: Run HC on each sample to generate gvcf file"
+					
+					tidsNew := GatkHaplotypeCaller(sample, infile, outfile, logfile, logdir, tmpdir, modname, modload, threadsNew, memoryNew, gatkExe, samtoolsExe, javaMaxMemStr, refGenome, targetParam, knownVarParam, emitConf, callConf, minBaseQ)
+
+					tids += tidsNew
+				}
+				else if(infileTotal >= 2) { 
+					
+					tidsNew := GatkGenotypeGVCFs(sample, infile, outfile, logfile, logdir, tmpdir, modname, modload, threadsNew, memoryNew, gatkExe, samtoolsExe, javaMaxMemStr, refGenome, refGenomeDict, targetParam, knownVarParam)
+
+					tids += tidsNew
+				}
+			}
+		}
+		else if(caller == "gatkug") {
+			// if scatter-gather mode is on, each split job uses 1 thread to avoid thread overwhelming on the cluster
+			threadsNew := threads
+			memoryNew := memory
+			if(splitByBin == 1) { 
+				threadsNew = 1 
+				memoryNew = memory * threads
+			}
+
+			if(mode == "multi") {
+				// run UG on multi variant calling (1 sample or more)
+				// println "gatkVariantCall: Run UG for multisample variant calling"
+				
+				tidsNew := GatkUnifiedGenotyper(sample, infile, outfile, logfile, logdir, tmpdir, modname, modload, threadsNew, memoryNew, gatkExe, samtoolsExe, javaMaxMemStr, refGenome, refGenomeDict, targetParam, knownVarParam, emitConf, callConf, minBaseQ, dcov, minIndelCnt, minIndelFrac)
+
+				tids += tidsNew
+
+			}
+		}
+	}
+
+	// run end
+	// println info(modname, "END | sm=$sample | util=$util")
+
+	return tids
+}
+
+
+// -------------- FUNCTION ----------- //
+
+int CheckVCFflt(string beforeFlt, string afterFlt) {
+
+	int flag = 0
+
+	x := sys awk 'BEGIN{total = 0 } { if($1 ~ /^chr/) { total++ } } END{ print total }' $beforeFlt
+	y := sys awk 'BEGIN{total = 0 } { if($1 ~ /^chr/) { total++ } } END{ print total }' $afterFlt
+
+	x = x.trim()
+	y = y.trim()
+	
+	// whether the total lines are consistent before and after flt
+	if(x != y) {
+		flag++
+		println "CheckGATKgvcf: Warning! Line total inconsistent. $afterFlt may be truncated!\n$beforeFlt = $x\n$afterFlt = $y\n"
+		
+	}
+
+	return flag
+}
+
+string[] GatkIndelRealn(string sample, string infile, string outfile, string logfile, string logdir, string tmpdir, string modname, string modload, int threads, int memory, string gatkExe, string samtoolsExe, string javaMaxMemStr, string refGenome, string targetParam, string knownVarParam) {
+
+	string[] tids
+	string tid
+
+	if(outfile <- infile) {
+		println info(modname, " task=run_gatkIndelRealn | sm=$sample | run=1")
+
+		// create indel realn intervals
+		if(outfile + ".intervals" <- infile) { 
+			println info(modname, " task=run_gatkRealignerTargetCreator | sm=$sample | run=1")
+			tid = dep(outfile + ".intervals" <- infile, cpus := threads, mem := memory, \
+				infile.length() > 0) {
+				sys echo "$sample::gatkRealignerTargetCreator"
+				sys $modload
+				sys $baseJava $javaMaxMemStr -Djava.io.tmpdir=$tmpdir -jar $gatkExe -T RealignerTargetCreator -R $refGenome -I $infile -nt $threads $targetParam $knownVarParam -o $outfile.intervals --disable_auto_index_creation_and_locking_when_reading_rods >& $logdir/$logfile
+				sys sleep $safeSleep
+			}
+
+			tids.push(tid)
+		}
+		else {
+			println info(modname, " task=run_gatkRealignerTargetCreator | sm=$sample | run=0")
+		}
+
+		// Re-align each interval. (no need to index coz GATK will index the bam)
+		if(outfile <- outfile + ".intervals") { 
+			println info(modname, " task=run_gatkIndelRealigner | sm=$sample | run=1")
+			tid = dep(outfile <- outfile + ".intervals", cpus := 1, mem := memory) {
+				sys echo "$sample::gatkIndelRealigner"
+				sys $modload
+				sys $baseJava $javaMaxMemStr -Djava.io.tmpdir=$tmpdir -jar $gatkExe -T IndelRealigner -R $refGenome -I $infile -o $outfile -targetIntervals $outfile.intervals $targetParam $knownVarParam -model USE_READS --disable_auto_index_creation_and_locking_when_reading_rods >> $logdir/$logfile 2>&1
+				sys sleep $safeSleep
+			}
+
+			tids.push(tid)
+		}
+		else {
+			println info(modname, " task=run_gatkIndelRealigner | sm=$sample | run=0")
+		}
+	}
+	else {
+		println info(modname, " task=run_gatkIndelRealn | sm=$sample | run=0")
+	}
+
+	goal(outfile)
+
+	return tids
+}
+
+string[] GatkBQSR(string sample, string infile, string outfile, string logfile, string logdir, string tmpdir, string modname, string modload, int threads, int memory, string gatkExe, string samtoolsExe, string javaMaxMemStr, string refGenome, string targetParam, string knownVarParam) {
+
+	string[] tids
+	string tid
+
+	if(outfile <- infile) {
+		println info(modname, " task=run_gatkBQSR | sm=$sample | run=1")
+
+		// create base recal table
+		if(outfile + ".table" <- infile) { 
+			println info(modname, " task=run_gatkBaseRecalibrator | sm=$sample | run=1")
+			tid = dep(outfile + ".table" <- infile, cpus := threads, mem := memory, \
+				infile.length() > 0) {
+				sys echo "$sample::gatkBaseRecalibrator"
+				sys $modload
+				sys $baseJava $javaMaxMemStr -Djava.io.tmpdir=$tmpdir -jar $gatkExe -T BaseRecalibrator -R $refGenome -I $infile -o $outfile.table -nct $threads $targetParam $knownVarParam --disable_auto_index_creation_and_locking_when_reading_rods >& $logdir/$logfile
+				sys sleep $safeSleep
+			}
+
+			tids.push(tid)
+		}
+		else {
+			println info(modname, " task=run_gatkBaseRecalibrator | sm=$sample | run=0")
+		}
+
+		// Print reads into recal bam (still need to index recal.bam coz downstream callers do not recognize GATK index file)
+		if(outfile <- outfile + ".table") { 
+			println info(modname, " task=run_gatkPrintReads | sm=$sample | run=1")
+			tid = dep(outfile <- outfile + ".table", cpus := threads, mem := memory) {
+				sys echo "$sample::gatkPrintReads"
+				sys $modload
+				sys $baseJava $javaMaxMemStr -Djava.io.tmpdir=$tmpdir -jar $gatkExe -T PrintReads -R $refGenome -I $infile -o $outfile -BQSR $outfile.table -nct $threads $targetParam >> $logdir/$logfile 2>&1
+				sys $samtoolsExe index $outfile >> $logdir/$logfile 2>&1
+				sys $samtoolsExe flagstat $outfile > $outfile.flagstat 2>> $logdir/$logfile
+				sys sleep $safeSleep
+			}
+
+			tids.push(tid)
+		}
+		else {
+			println info(modname, " task=run_gatkPrintReads | sm=$sample | run=0")
+		}
+	}
+	else 
+	{
+		println info(modname, " task=run_gatkBQSR | sm=$sample | run=0")
+	}
+
+	goal(outfile)
+
+	return tids
+}
+
+string[] GatkCallableLoci(string sample, string infile, string outfile, string logfile, string logdir, string tmpdir, string modname, string modload, int threads, int memory, string gatkExe, string samtoolsExe, string javaMaxMemStr, string refGenome, string targetParam, string knownVarParam, int maxDepth, int minDepth, real maxFractionOfReadsWithLowMAPQ, int maxLowMAPQ, int minBaseQ, int minMapQ, int minDepthForLowMAPQ) {
+
+	string[] tids
+	string tid
+
+	if(outfile + ".loci.callable.bed" <- infile) {
+		println info(modname, " task=run_gatkCallableLoci | sm=$sample | run=1")
+
+		tid = task(outfile + ".loci.callable.bed" <- infile, cpus := 1, mem := memory, \
+			infile.length() > 0) {
+			sys echo "$sample::gatkCallableLoci"
+			sys $modload
+			sys $baseJava $javaMaxMemStr -Djava.io.tmpdir=$tmpdir -jar $gatkExe -T CallableLoci -R $refGenome -I $infile -o $outfile.loci.bed -summary $outfile.loci.summary $targetParam --maxDepth $maxDepth --minDepth $minDepth -frlmq $maxFractionOfReadsWithLowMAPQ -mlmq $maxLowMAPQ -mbq $minBaseQ -mmq $minMapQ --format BED -mdflmq $minDepthForLowMAPQ >& $logdir/$logfile
+			sys awk '$4=="CALLABLE"' $outfile.loci.bed | cut -f 1-3 > $outfile.loci.callable.bed 2>> $logdir/$logfile
+			sys sleep $safeSleep
+		}
+
+		tids.push(tid)
+
+	}
+	else {
+		println info(modname, " task=run_gatkCallableLoci | sm=$sample | run=0")
+	}
+
+	return tids
+}
+
+
+string[] GatkHaplotypeCaller(string sample, string infile, string outfile, string logfile, string logdir, string tmpdir, string modname, string modload, int threads, int memory, string gatkExe, string samtoolsExe, string javaMaxMemStr, string refGenome, string targetParam, string knownVarParam, int emitConf, int callConf, int minBaseQ) {
+
+	string[] tids
+	string tid
+
+	if(outfile <- infile) { 
+	println info(modname, " task=run_gatkHaplotypeCaller | sm=$sample | run=1")
+
+	tid = task(outfile <- infile, cpus := threads, mem := memory, \
+		infile.length() > 0) {
+		sys echo "$sample::gatkHaplotypeCaller"
+		sys $modload
+		sys $baseJava $javaMaxMemStr -Djava.io.tmpdir=$tmpdir -jar $gatkExe -T HaplotypeCaller -R $refGenome -I $infile -o $outfile -nct $threads $targetParam $knownVarParam -gt_mode DISCOVERY -stand_emit_conf $emitConf -stand_call_conf $callConf -mbq $minBaseQ -ERC GVCF -variant_index_type LINEAR -variant_index_parameter 128000 --disable_auto_index_creation_and_locking_when_reading_rods >& $logdir/$logfile
+		sys sleep $safeSleep
+	}
+
+	tids.push(tid)	
+	}
+	else {
+		println info(modname, " task=run_gatkHaplotypeCaller | sm=$sample | run=0")
+	}
+
+	return tids
+}
+
+string[] GatkGenotypeGVCFs(string sample, string infile, string outfile, string logfile, string logdir, string tmpdir, string modname, string modload, int threads, int memory, string gatkExe, string samtoolsExe, string javaMaxMemStr, string refGenome, string refGenomeDict, string targetParam, string knownVarParam) {
+
+	string[] infiles = infile.split(",")
+	string[] tids
+	string inputString = ""
+	string outfn = outfile.split("/").pop().removeExt(".vcf")
+	string tid
+
+	// prepare input string
+	for(string in : infiles) { inputString += " -V $in"; }
+
+	if(outfile <- infiles) { 
+		println info(modname, " task=run_gatkGenotypeGVCFs | sm=$sample | run=1") 
+		// Print reads for joint genotyping
+		// println "gatkVariantCall: First check whether there is any truncated GATK.raw.vcf file..."
+		// println info(modname, " task=run_CheckVCF | sm=$sample | run=1")
+
+		int flag = 0
+
+		// only check when this was run genome-wide
+		if(target.length() <= 0) {
+			flag = CheckVCF(infiles)
+			if(flag > 0) {
+				error info(modname, " task=run_CheckVCF | sm=$sample | CheckVCF failed. GATK gvcf files are truncated. Program terminated!\n")
+				// error "gatkVariantCall: CheckVCF failed. GATK gvcf files are truncated. Program terminated!\n"
+			}
+		}
+		if(flag == 0) {
+			// println "gatkVariantCall:  CheckVCF passed. Continue with joint genotyping"
+
+			println info(modname, " task=run_CheckVCF | sm=$sample | CheckVCF passed. Continue with joint genotyping")
+			outfn = outdir + "/" + outfn
+			tid = task(outfile <- infiles, cpus := threads, mem := memory, \
+				inputString != "") {
+				sys echo "$sample::gatkGenotypeGVCFs"
+				sys $modload
+				sys echo "Running gatkGenotypeGVCFs ..." > $logdir/$logfile
+				sys $baseJava $javaMaxMemStr -Djava.io.tmpdir=$tmpdir -jar $gatkExe -T GenotypeGVCFs --disable_auto_index_creation_and_locking_when_reading_rods -R $refGenome -nt $threads $targetParam $knownVarParam $inputString -o $outfn.raw.vcf >> $logdir/$logfile 2>&1
+				sys echo "Normalize variants ..." >> $logdir/$logfile
+				sys cat $outfn.raw.vcf | $vcflibExe/vcfallelicprimitives --keep-info --keep-geno 2>> $logdir/$logfile | $vtExe normalize -r $refGenome - > $outfn.norm.vcf 2>> $logdir/$logfile
+				sys echo "Reordering chrom to be consistent with genome.dict ..." >> $logdir/$logfile
+				sys if [ -e $outfile ]; then mv $outfile $outfile.bak; fi 
+				sys $vcfsorterExe $refGenomeDict $outfn.norm.vcf > $outfile 2>> $logdir/$logfile
+				sys echo "... Done!" >> $logdir/$logfile
+				sys sleep $safeSleep
+			}
+
+			tids.push(tid)
+		}
+	}
+	else {
+		println info(modname, " task=run_gatkGenotypeGVCFs | sm=$sample | run=0") 
+	}
+
+	return tids
+
+}
+
+string[] GatkUnifiedGenotyper(string sample, string infile, string outfile, string logfile, string logdir, string tmpdir, string modname, string modload, int threads, int memory, string gatkExe, string samtoolsExe, string javaMaxMemStr, string refGenome, string refGenomeDict,string targetParam, string knownVarParam, int emitConf, int callConf, int minBaseQ, int dcov, int minIndelCnt, real minIndelFrac) {
+
+	string[] infiles = infile.split(",")
+	string[] tids
+	string inputString = ""
+	string outfn = outfile.split("/").pop().removeExt(".vcf")
+	string tid
+
+	// prepare input string
+	for(string in : infiles) { inputString += " -I $in"; }
+
+	if(outfile <- infiles) { 
+		println info(modname, " task=run_gatkUnifiedGenotyper | sm=$sample | run=1") 
+		outfn = outdir + "/" + outfn
+		tid = task(outfile <- infiles, cpus := threads, mem := memory, \
+			inputString != "") {
+			sys echo "$sample::gatkUnifiedGenotyper"
+			sys $modload
+			sys echo "Running gatkUnifiedGenotyper ..." > $logdir/$logfile
+			sys $baseJava $javaMaxMemStr -Djava.io.tmpdir=$tmpdir -jar $gatkExe -T UnifiedGenotyper -R $refGenome -nct $threads -gt_mode DISCOVERY -stand_call_conf $callConf -stand_emit_conf $emitConf -mbq $minBaseQ --disable_auto_index_creation_and_locking_when_reading_rods -ploidy $ploidy -glm BOTH -dcov $dcov -minIndelCnt $minIndelCnt -minIndelFrac $minIndelFrac -out_mode EMIT_VARIANTS_ONLY $targetParam $knownVarParam $inputString -o $outfn.raw.vcf >> $logdir/$logfile 2>&1
+			sys echo "Normalize variants ..." >> $logdir/$logfile
+			sys cat $outfn.raw.vcf | $vcflibExe/vcfallelicprimitives --keep-info --keep-geno 2>> $logdir/$logfile | $vtExe normalize -r $refGenome - > $outfn.norm.vcf 2>> $logdir/$logfile
+			sys echo "Reordering chrom to be consistent with genome.dict ..." >> $logdir/$logfile
+			sys if [ -e $outfile ]; then mv $outfile $outfile.bak; fi 
+			sys $vcfsorterExe $refGenomeDict $outfn.norm.vcf > $outfile 2>> $logdir/$logfile
+			sys echo "... Done!" >> $logdir/$logfile
+			sys sleep $safeSleep
+			
+		}
+
+		tids.push(tid)
+	}
+	else {
+		println info(modname, " task=run_gatkUnifiedGenotyper | sm=$sample | run=0") 
+	}
+
+	return tids
+
+}
+
+string[] GatkVariantFlt(string sample, string infile, string outfile, string logfile, string logdir, string tmpdir, string modname, string modload, int threads, int memory, string gatkExe, string samtoolsExe, string vcftoolsExe, string tabixExe, string bgzipExe, string javaMaxMemStr, string refGenome, string caller, int minDepth) {
+
+	string[] tids 
+	string tid
+	string infn = infile.removeExt(".vcf")
+
+	// generic filters
+	string filterGeneric = " --clusterSize 3 --clusterWindowSize 10 --filterExpression \"MQ0 >= 4 && ((MQ0 / (1.0 * DP)) > 0.1)\" --filterName \"HardToValidate\" --filterExpression \"DP < $minDepth\" --filterName \"LowCoverage\" --filterExpression \"QUAL < 30.0\" --filterName \"VeryLowQual\" --filterExpression \"QUAL >= 30.0 && QUAL < 50.0\" --filterName \"LowQual\" --filterExpression \"QD < 2.0\" --filterName \"LowQD\" "
+
+	// GATK only
+	string filterGATKsnp = " --filterExpression \"FS > 60.0\" --filterName \"StrandBias\" --filterExpression \"ReadPosRankSum < -8.0\" --filterName \"ReadEndBias\" --filterExpression \"MQ < 40.0\" --filterName \"LowMQ\" --filterExpression \"HaplotypeScore > 13.0\" --filterName \"BadAlignment\" --filterExpression \"MQRankSum < -12.5\" --filterName \"LowMQRankSum\" "
+
+	string filterGATKindel = " --filterExpression \"FS > 200.0\" --filterName \"StrandBias\" --filterExpression \"ReadPosRankSum < -20.0\" --filterName \"ReadEndBias\" "
+
+	// GATK UC only
+	// string UC_filter = " --filterExpression \"SB > -0.10\" --filterName \"StrandBiasPerSample\" "
+	// Samtools mpileup only
+	string filterMpileupSnp = ""
+	if(caller == "mpileup") { filterMpileupSnp = " --filterExpression \"MQ < 40.0\" --filterName \"LowMQ\" " }
+
+	// println "outfile = $outfile\ninfile = $infile\n"
+
+	// run variant call filtration
+
+	if(outfile <- infile) { 
+		println info(modname, " task=run_gatkVariantFlt | sm=$sample | caller=$caller | run=1")
+
+		if((caller == "gatkhc") || (caller == "gatkug")) {
+			// retrieve and filter SNPs
+			tid1 := task(infn + ".snp.flt.vcf.gz.tbi" <- infile, cpus := 1, mem := memory, \
+				infile.length() > 0) {
+				sys echo "$sample::$caller::fltSNPs"
+				sys $modload
+				sys $baseJava $javaMaxMemStr -Djava.io.tmpdir=$tmpdir -jar $gatkExe -T SelectVariants -R $refGenome -V $infile -o $infn.snp.vcf -selectType SNP >& $logdir/$logfile
+				sys $baseJava $javaMaxMemStr -Djava.io.tmpdir=$tmpdir -jar $gatkExe -T VariantFiltration -R $refGenome -V $infn.snp.vcf -o $infn.snp.flt.vcf $filterGeneric $filterGATKsnp >> $logdir/$logfile 2>&1
+				sys $bgzipExe -f $infn.snp.flt.vcf >> $logdir/$logfile 2>&1
+				sys $tabixExe -p vcf -f $infn.snp.flt.vcf.gz >> $logdir/$logfile 2>&1
+				sys sleep $safeSleep
+			}
+
+			tids.push(tid1)
+
+			// retrieve and filter indels
+			tid2 := task(infn + ".indel.flt.vcf.gz.tbi" <- infile, cpus := 1, mem := memory, \
+				infile.length() > 0) {
+				sys echo "$sample::$caller::fltInDels"
+				sys $modload
+				sys $baseJava $javaMaxMemStr -Djava.io.tmpdir=$tmpdir -jar $gatkExe -T SelectVariants -R $refGenome -V $infile -o $infn.indel.vcf -selectType INDEL >& $logdir/$logfile
+				sys $baseJava $javaMaxMemStr -Djava.io.tmpdir=$tmpdir -jar $gatkExe -T VariantFiltration -R $refGenome -V $infn.indel.vcf -o $infn.indel.flt.vcf $filterGeneric $filterGATKindel >> $logdir/$logfile 2>&1
+				sys $bgzipExe -f $infn.indel.flt.vcf >> $logdir/$logfile 2>&1
+				sys $tabixExe -p vcf -f $infn.indel.flt.vcf.gz >> $logdir/$logfile 2>&1
+				sys sleep $safeSleep
+			}
+
+			tids.push(tid2)	
+
+			// combine filtered SNPs and indels
+			tid3 := task(outfile <- [ infn + ".snp.flt.vcf.gz.tbi", infn + ".indel.flt.vcf.gz.tbi" ], cpus := 1, mem := memory) {
+				sys echo "$sample::$caller::mergeFltSNPsAndInDels"
+				sys $modload
+				sys echo "++++++++ Merging snp and indel.flt.vcf using $vcftoolsExe ++++++++" >> $logdir/$logfile 2>&1
+				sys $vcftoolsExe/vcf-concat -p $infn.snp.flt.vcf.gz $infn.indel.flt.vcf.gz | $vcftoolsExe/vcf-sort -c -t $tmpdir > $outfile 2>> $logdir/$logfile
+				sys echo "++++++++ Generating vcf.idx using $igvToolsExe ++++++++" >> $logdir/$logfile 2>&1
+				sys $baseJava $javaMaxMemStr -Djava.io.tmpdir=$tmpdir -jar $igvToolsExe index $outfile >> $logdir/$logfile 2>&1
+				sys echo "++++++++ Done! ++++++++" >> $logdir/$logfile 2>&1
+				sys sleep $safeSleep
+			}
+
+			tids.push(tid3)	
+		}
+		else {
+
+			tid = task(outfile <- infile, cpus := 1, mem := memory, \
+				infile.length() > 0) {
+				sys echo "$sample::$caller::fltVariants"
+				sys $modload
+				sys $baseJava $javaMaxMemStr -Djava.io.tmpdir=$tmpdir -jar $gatkExe -T VariantFiltration -R $refGenome -V $infile -o $outfile $filterGeneric $filterMpileupSnp >& $logdir/$logfile
+				sys sleep $safeSleep
+			}
+
+			tids.push(tid)
+		}
+
+		// check whether the flt.vcf is truncated...
+		wait tids
+		int flag = CheckVCFflt(infile, outfile)
+		if(flag == 0) {
+			println info(modname, " task=run_CheckVCFflt | sm=$sample | caller=$caller | CheckVCFflt passed! Results look good")
+			// println "gatkVariantFlt: CheckVCFflt passed! Results look good."
+		}
+		else{
+			// print a warning instead of exit (because for gatk VariantFiltration, sometimes the variant rows will differ by a small amount)
+			// error info(modname, " task=run_CheckVCFflt | sm=$sample | caller=$caller | CheckVCFflt failed. infile total line number inconsistent before and after filtration! Program termined.\n")
+			println info(modname, " task=run_CheckVCFflt | sm=$sample | caller=$caller | WARNING! CheckVCFflt failed. infile total line number inconsistent before and after filtration! Program termined.\n")
+			// error "gatkVariantFlt: CheckVCFflt failed. infile total line number inconsistent before and after filtration! Program termined.\n"
+		}
+	}
+	else {
+		println info(modname, " task=run_gatkVariantFlt | sm=$sample | caller=$caller | run=0")
+	}
+
+	return tids 
+}
+
+string[] GatkVariantCombine(string sample, string infile, string outfile, string logfile, string logdir, string tmpdir, string modname, string modload, int threads, int memory, string gatkExe, string samtoolsExe, string javaMaxMemStr, string refGenome, string util, string caller) {
+
+	string[] infiles = infile.split(",")
+	string[] tids
+	string tid
+	string inputString = ""
+	string combineParam = ""
+
+	// prepare input string
+	for(string in : infiles) { inputString += " -V $in" }
+
+	// run concat (all chr.vcfs for chr) or merge (acorss sample.vcfs for sample)
+	if(util == "VarConcat") { combineParam = " --assumeIdenticalSamples" }
+	else if(util == "VarMerge") { combineParam = " --genotypeMergeOptions UNIQUIFY" }
+
+	// note that with gatk 3.3.0, even I am concating variants it will complain "genotypeMergeOptions - duplicate samples etc.", which does not make sense to me.
+	// this problem does not exist with gatk 3.1.1.
+	if(outfile <- infiles) {
+		println info(modname, " task=run_gatkVariantCombine | sm=$sample | caller=$caller | run=1")
+
+		tid = task(outfile <- infiles, cpus := 1, mem := memory, \
+			infiles.size() > 0) {
+			sys echo "$sample::$caller::$util"
+			sys $modload
+			sys $baseJava $javaMaxMemStr -Djava.io.tmpdir=$tmpdir -jar $gatkExe -T CombineVariants -R $refGenome $inputString -o $outfile $combineParam --suppressCommandLineHeader >& $logdir/$logfile
+			sys sleep $safeSleep
+		}
+
+		tids.push(tid)
+
+	}
+	else {
+		println info(modname, " task=run_gatkVariantCombine | sm=$sample | caller=$caller | run=0")
+	}
+
+	return tids
+}

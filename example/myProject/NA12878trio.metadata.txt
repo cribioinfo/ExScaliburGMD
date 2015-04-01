@@ -1,0 +1,4 @@
+Sample	Library	ReadGroup	Platform	SequencingCenter	Date	Lane	Unit	Flavor	Encoding	Run	Genome	Type	Gender	NucleicAcid	Location	Seqfile1	Seqfile2
+NA12878	NA12878	SRR292250	Illumina	WU	3/13/2012	7	80DYAABXX_000168	2x50	33		hg19	child	F	exome	/group/rbao/ExScaliburGMD/example/data	SRR292250_1.slim.fastq.gz	SRR292250_2.slim.fastq.gz
+NA12891	NA12891	SRR299219	Illumina	WU	7/9/2011	2	61THWAAXX_0000006	2x76	33		hg19	mother	F	exome	/group/rbao/ExScaliburGMD/example/data	SRR299219_1.slim.fastq.gz	SRR299219_2.slim.fastq.gz
+NA12892	NA12892	SRR299388	Illumina	WU	7/9/2011	4	61WNAAAXX_0007	2x76	33		hg19	father	M	exome	/group/rbao/ExScaliburGMD/example/data	SRR299388_1.slim.fastq.gz	SRR299388_2.slim.fastq.gz

@@ -1,0 +1,63 @@
+---
+data:
+  -
+    alignments:
+      inputs:
+        alignment_summary_metrics: aln/NA12878.alignment_summary_metrics.txt
+        insert_size_metrics: aln/NA12878.insert_size_metrics.txt
+        quality_by_cycle_metrics: aln/NA12878.quality_by_cycle_metrics.txt
+        quality_distribution_metrics: aln/NA12878.quality_distribution_metrics.txt
+        total_coverage: aln/NA12878.total_coverage.txt
+    fastqc:
+      inputs:
+        -
+          leftseq: fastqc/SRR292250_1.slim_fastqc
+          paired: 1
+          readgroup: SRR292250
+          rightseq: fastqc/SRR292250_2.slim_fastqc
+      version: ~
+    sample: NA12878
+    variants:
+      inputs:
+        variant_table: annovar/NA12878.variants.tsv
+  -
+    alignments:
+      inputs:
+        alignment_summary_metrics: aln/NA12891.alignment_summary_metrics.txt
+        insert_size_metrics: aln/NA12891.insert_size_metrics.txt
+        quality_by_cycle_metrics: aln/NA12891.quality_by_cycle_metrics.txt
+        quality_distribution_metrics: aln/NA12891.quality_distribution_metrics.txt
+        total_coverage: aln/NA12891.total_coverage.txt
+    fastqc:
+      inputs:
+        -
+          leftseq: fastqc/SRR299219_1.slim_fastqc
+          paired: 1
+          readgroup: SRR299219
+          rightseq: fastqc/SRR299219_2.slim_fastqc
+      version: ~
+    sample: NA12891
+    variants:
+      inputs:
+        variant_table: annovar/NA12891.variants.tsv
+  -
+    alignments:
+      inputs:
+        alignment_summary_metrics: aln/NA12892.alignment_summary_metrics.txt
+        insert_size_metrics: aln/NA12892.insert_size_metrics.txt
+        quality_by_cycle_metrics: aln/NA12892.quality_by_cycle_metrics.txt
+        quality_distribution_metrics: aln/NA12892.quality_distribution_metrics.txt
+        total_coverage: aln/NA12892.total_coverage.txt
+    fastqc:
+      inputs:
+        -
+          leftseq: fastqc/SRR299388_1.slim_fastqc
+          paired: 1
+          readgroup: SRR299388
+          rightseq: fastqc/SRR299388_2.slim_fastqc
+      version: ~
+    sample: NA12892
+    variants:
+      inputs:
+        variant_table: annovar/NA12892.variants.tsv
+project: NA12878trio

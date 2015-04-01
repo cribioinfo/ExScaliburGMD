@@ -1,0 +1,118 @@
+---
+data:
+  -
+    alignments:
+      inputs:
+        alignment_summary_metrics: NA12878.bwaaln.merged.dedup.realn.recal.bam.alignment_summary_metrics,NA12878.bwamem.merged.dedup.realn.recal.bam.alignment_summary_metrics,NA12878.novoalign.merged.dedup.realn.recal.bam.alignment_summary_metrics
+        insert_size_metrics: NA12878.bwaaln.merged.dedup.realn.recal.bam.insert_size_metrics,NA12878.bwamem.merged.dedup.realn.recal.bam.insert_size_metrics,NA12878.novoalign.merged.dedup.realn.recal.bam.insert_size_metrics
+        path: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_samples/NA12878/alignment_metrics
+        quality_by_cycle_metrics: NA12878.bwaaln.merged.dedup.realn.recal.bam.quality_by_cycle_metrics,NA12878.bwamem.merged.dedup.realn.recal.bam.quality_by_cycle_metrics,NA12878.novoalign.merged.dedup.realn.recal.bam.quality_by_cycle_metrics
+        quality_distribution_metrics: NA12878.bwaaln.merged.dedup.realn.recal.bam.quality_distribution_metrics,NA12878.bwamem.merged.dedup.realn.recal.bam.quality_distribution_metrics,NA12878.novoalign.merged.dedup.realn.recal.bam.quality_distribution_metrics
+        total_coverage: NA12878.bwaaln.merged.dedup.realn.recal.bam.total_coverage,NA12878.bwamem.merged.dedup.realn.recal.bam.total_coverage,NA12878.novoalign.merged.dedup.realn.recal.bam.total_coverage
+    fastqc:
+      inputs:
+        -
+          leftseq: SRR292250_1.slim_fastqc
+          paired: 1
+          path: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_samples/NA12878/qc_reports
+          readgroup: SRR292250
+          rightseq: SRR292250_2.slim_fastqc
+      version: ~
+    sample: NA12878
+  -
+    alignments:
+      inputs:
+        alignment_summary_metrics: NA12891.bwaaln.merged.dedup.realn.recal.bam.alignment_summary_metrics,NA12891.bwamem.merged.dedup.realn.recal.bam.alignment_summary_metrics,NA12891.novoalign.merged.dedup.realn.recal.bam.alignment_summary_metrics
+        insert_size_metrics: NA12891.bwaaln.merged.dedup.realn.recal.bam.insert_size_metrics,NA12891.bwamem.merged.dedup.realn.recal.bam.insert_size_metrics,NA12891.novoalign.merged.dedup.realn.recal.bam.insert_size_metrics
+        path: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_samples/NA12891/alignment_metrics
+        quality_by_cycle_metrics: NA12891.bwaaln.merged.dedup.realn.recal.bam.quality_by_cycle_metrics,NA12891.bwamem.merged.dedup.realn.recal.bam.quality_by_cycle_metrics,NA12891.novoalign.merged.dedup.realn.recal.bam.quality_by_cycle_metrics
+        quality_distribution_metrics: NA12891.bwaaln.merged.dedup.realn.recal.bam.quality_distribution_metrics,NA12891.bwamem.merged.dedup.realn.recal.bam.quality_distribution_metrics,NA12891.novoalign.merged.dedup.realn.recal.bam.quality_distribution_metrics
+        total_coverage: NA12891.bwaaln.merged.dedup.realn.recal.bam.total_coverage,NA12891.bwamem.merged.dedup.realn.recal.bam.total_coverage,NA12891.novoalign.merged.dedup.realn.recal.bam.total_coverage
+    fastqc:
+      inputs:
+        -
+          leftseq: SRR299219_1.slim_fastqc
+          paired: 1
+          path: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_samples/NA12891/qc_reports
+          readgroup: SRR299219
+          rightseq: SRR299219_2.slim_fastqc
+      version: ~
+    sample: NA12891
+  -
+    alignments:
+      inputs:
+        alignment_summary_metrics: NA12892.bwaaln.merged.dedup.realn.recal.bam.alignment_summary_metrics,NA12892.bwamem.merged.dedup.realn.recal.bam.alignment_summary_metrics,NA12892.novoalign.merged.dedup.realn.recal.bam.alignment_summary_metrics
+        insert_size_metrics: NA12892.bwaaln.merged.dedup.realn.recal.bam.insert_size_metrics,NA12892.bwamem.merged.dedup.realn.recal.bam.insert_size_metrics,NA12892.novoalign.merged.dedup.realn.recal.bam.insert_size_metrics
+        path: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_samples/NA12892/alignment_metrics
+        quality_by_cycle_metrics: NA12892.bwaaln.merged.dedup.realn.recal.bam.quality_by_cycle_metrics,NA12892.bwamem.merged.dedup.realn.recal.bam.quality_by_cycle_metrics,NA12892.novoalign.merged.dedup.realn.recal.bam.quality_by_cycle_metrics
+        quality_distribution_metrics: NA12892.bwaaln.merged.dedup.realn.recal.bam.quality_distribution_metrics,NA12892.bwamem.merged.dedup.realn.recal.bam.quality_distribution_metrics,NA12892.novoalign.merged.dedup.realn.recal.bam.quality_distribution_metrics
+        total_coverage: NA12892.bwaaln.merged.dedup.realn.recal.bam.total_coverage,NA12892.bwamem.merged.dedup.realn.recal.bam.total_coverage,NA12892.novoalign.merged.dedup.realn.recal.bam.total_coverage
+    fastqc:
+      inputs:
+        -
+          leftseq: SRR299388_1.slim_fastqc
+          paired: 1
+          path: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_samples/NA12892/qc_reports
+          readgroup: SRR299388
+          rightseq: SRR299388_2.slim_fastqc
+      version: ~
+    sample: NA12892
+multi:
+  variants:
+    inputs:
+      -
+        path: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_annotation
+        variant_table: NA12878trio.bwaaln.freebayes.flt.anno.exonic.txt
+      -
+        path: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_annotation
+        variant_table: NA12878trio.bwaaln.gatkhc.flt.anno.exonic.txt
+      -
+        path: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_annotation
+        variant_table: NA12878trio.bwaaln.gatkug.flt.anno.exonic.txt
+      -
+        path: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_annotation
+        variant_table: NA12878trio.bwaaln.ivc.flt.anno.exonic.txt
+      -
+        path: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_annotation
+        variant_table: NA12878trio.bwaaln.mpileup.flt.anno.exonic.txt
+      -
+        path: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_annotation
+        variant_table: NA12878trio.bwaaln.platypus.flt.anno.exonic.txt
+      -
+        path: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_annotation
+        variant_table: NA12878trio.bwamem.freebayes.flt.anno.exonic.txt
+      -
+        path: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_annotation
+        variant_table: NA12878trio.bwamem.gatkhc.flt.anno.exonic.txt
+      -
+        path: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_annotation
+        variant_table: NA12878trio.bwamem.gatkug.flt.anno.exonic.txt
+      -
+        path: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_annotation
+        variant_table: NA12878trio.bwamem.ivc.flt.anno.exonic.txt
+      -
+        path: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_annotation
+        variant_table: NA12878trio.bwamem.mpileup.flt.anno.exonic.txt
+      -
+        path: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_annotation
+        variant_table: NA12878trio.bwamem.platypus.flt.anno.exonic.txt
+      -
+        path: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_annotation
+        variant_table: NA12878trio.novoalign.freebayes.flt.anno.exonic.txt
+      -
+        path: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_annotation
+        variant_table: NA12878trio.novoalign.gatkhc.flt.anno.exonic.txt
+      -
+        path: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_annotation
+        variant_table: NA12878trio.novoalign.gatkug.flt.anno.exonic.txt
+      -
+        path: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_annotation
+        variant_table: NA12878trio.novoalign.ivc.flt.anno.exonic.txt
+      -
+        path: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_annotation
+        variant_table: NA12878trio.novoalign.mpileup.flt.anno.exonic.txt
+      -
+        path: /group/rbao/ExScaliburGMD/example/myProject/results/NA12878trio_multisample/variant_annotation
+        variant_table: NA12878trio.novoalign.platypus.flt.anno.exonic.txt
+    version: ~
+project: NA12878trio

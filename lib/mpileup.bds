@@ -1,0 +1,200 @@
+#!/usr/bin/env bds
+
+include "print.bds"
+include "getmem.bds"
+
+string[] mpileup(string sample, string chr, string tmpdir, string targetfile, string infile, string outfile, string outdir, string logfile, string logdir, string softwareConfig, string refConfig) {
+
+	// initialize
+	string{} swParam = config(softwareConfig)
+	string{} refParam = config(refConfig)
+	string[] modlist
+	string modname = "ExScaliburGMD::mpileup"
+	string modsource
+	string modload = ""
+	string mpileupExe
+	string bcftoolsExe
+	string vcfutilsExe
+	string vcflibExe
+	string vtExe
+	string vcfsorterExe
+	string fixVcfHeaderExe
+	string utilPath
+	int threads = 1
+	int memory = 1
+
+	// println info(modname, "START | sm=$sample")
+
+	string outfn = outfile.split("/").pop().removeExt(".vcf")
+	string infilelist = outfile.replace(".vcf",".bamfiles.list")
+	string binlist = outfile.replace(".vcf",".bins.list")
+
+	string[] tids
+	string[] infiles = infile.split(",")
+	string[] chrs
+	string mode
+	string targetParam = ""
+	string inputString = infiles.join("\n")
+	string refGenome
+	string refGenomeDict
+	string chrom
+	string target // will be overitten by the opt targetfile
+	string tid
+	int infileTotal
+	int minIndelReadCnt
+	int minMapQ
+	int minBaseQ
+	int minDepth
+	int maxDepth
+	int minVarReadCnt
+	int ploidy
+	int bin
+	int xargs = 0
+
+	// assign values
+	if(swParam.hasKey("java_module")) { modlist.push(swParam{"java_module"}) }
+	if(swParam.hasKey("main_module_source")) { modsource = swParam{"main_module_source"} }
+	if(swParam.hasKey("main_min_base_qual")) { minBaseQ = swParam{"main_min_base_qual"}.parseInt() }
+	if(swParam.hasKey("main_min_map_qual")) { minMapQ = swParam{"main_min_map_qual"}.parseInt() }
+	if(swParam.hasKey("main_ploidy")) { ploidy = swParam{"main_ploidy"}.parseInt() }
+	if(swParam.hasKey("mpileup_exe")) { mpileupExe = swParam{"mpileup_exe"} }
+	if(swParam.hasKey("mpileup_module")) { modlist.push(swParam{"mpileup_module"}) }
+	if(swParam.hasKey("mpileup_threads")) { threads = swParam{"mpileup_threads"}.parseInt() }
+	if(swParam.hasKey("mpileup_mem")) { memory = swParam{"mpileup_mem"}.parseInt() }
+	if(swParam.hasKey("vcfutils_exe")) { vcfutilsExe = swParam{"vcfutils_exe"} }
+	if(swParam.hasKey("vcfutils_module")) { modlist.push(swParam{"vcfutils_module"}) }
+	if(swParam.hasKey("vcflib_exe")) { vcflibExe = swParam{"vcflib_exe"} }
+	if(swParam.hasKey("vcflib_module")) { modlist.push(swParam{"vcflib_module"}) }
+	if(swParam.hasKey("vt_exe")) { vtExe = swParam{"vt_exe"} }
+	if(swParam.hasKey("vt_module")) { modlist.push(swParam{"vt_module"}) }
+	if(swParam.hasKey("vcfsorter_exe")) { vcfsorterExe = swParam{"vcfsorter_exe"} }
+	if(swParam.hasKey("vcfsorter_module")) { modlist.push(swParam{"vcfsorter_module"}) }
+	if(swParam.hasKey("bcftools_exe")) { bcftoolsExe = swParam{"bcftools_exe"} }
+	if(swParam.hasKey("bcftools_module")) { modlist.push(swParam{"bcftools_module"}) }
+	if(swParam.hasKey("mpileup_min_indel_read")) { minIndelReadCnt = swParam{"mpileup_min_indel_read"}.parseInt() }
+	if(swParam.hasKey("mpileup_min_depth")) { minDepth = swParam{"mpileup_min_depth"}.parseInt() }
+	if(swParam.hasKey("mpileup_max_depth")) { maxDepth = swParam{"mpileup_max_depth"}.parseInt() }
+	if(swParam.hasKey("mpileup_min_var_read")) { minVarReadCnt = swParam{"mpileup_min_var_read"}.parseInt() }
+	if(swParam.hasKey("mpileup_xargs_bin_size")) { bin = swParam{"mpileup_xargs_bin_size"}.parseInt() }
+	if(swParam.hasKey("mpileup_variant_call_mode")) { mode = swParam{"mpileup_variant_call_mode"} }
+	if(swParam.hasKey("mpileup_xargs")) { xargs = swParam{"mpileup_xargs"}.parseInt() }
+	if(refParam.hasKey("hg19_genome")) { refGenome = refParam{"hg19_genome"} }
+	if(refParam.hasKey("hg19_chrs")) { chrs = refParam{"hg19_chrs"}.split(",") }
+	if(refParam.hasKey("hg19_target")) { target = refParam{"hg19_target"} }
+	if(refParam.hasKey("hg19_genomedict")) { refGenomeDict = refParam{"hg19_genomedict"} }
+
+	if(swParam.hasKey("util_fix_vcf_header_exe")) { fixVcfHeaderExe = swParam{"util_fix_vcf_header_exe"} }
+	if(swParam.hasKey("util_path")) { utilPath = swParam{"util_path"} }
+
+	if(modsource.length() > 0) { modload = ". $modsource; " }
+	for(string mod : modlist) { modload += "module load $mod; " }
+	memory = getmem(memory * G, threads)
+
+	infileTotal = infiles.size()
+	if(targetfile.length() > 0) { target = targetfile }
+	
+	// prepare target input
+	if(chrom.length() > 0) { targetParam += " -r $chrom" }
+	if(target.length() > 0) { targetParam += " -l $target" }
+
+	// run start
+	if(! outdir.isDir()) { outdir.mkdir() }
+	if(! logdir.isDir()) { logdir.mkdir() }	
+	if(! tmpdir.isDir()) { tmpdir.mkdir() }	
+
+	if(outfile <- infiles) { 
+		println info(modname, " task=run_mpileup | proj=$sample | run=1")
+
+		// you need to do "$inputString" not $inputString, coz the value has "\n" which will cause problem in echo
+		if(xargs == 0) {
+			outfn = outdir + "/" + outfn
+
+			tid = task(outfile <- infiles, cpus := 1, mem := memory, \
+				infileTotal > 0) {
+				sys echo "$sample::mpileup"
+				sys $modload
+				sys echo "Running mpileup ..." > $logdir/$logfile
+				sys echo -e "$inputString" > $infilelist
+				sys $mpileupExe -SDuf $refGenome -m $minIndelReadCnt -F 0.0002 -M 99 -q $minMapQ -Q $minBaseQ $targetParam -b $infilelist 2>> $logdir/$logfile | $bcftoolsExe view -N -vceg - 2>> $logdir/$logfile | $vcfutilsExe varFilter -d $minDepth -D $maxDepth -a $minVarReadCnt - > $outfn.raw.vcf 2>> $logdir/$logfile	
+				
+				sys sleep 1
+				sys echo "Normalize variants ..." >> $logdir/$logfile
+				sys cat $outfn.raw.vcf | $vcflibExe/vcfallelicprimitives --keep-info --keep-geno 2>> $logdir/$logfile | $vtExe normalize -r $refGenome - > $outfn.raw.norm.vcf 2>> $logdir/$logfile
+				sys sleep 1
+				sys echo "Reordering chrom to be consistent with genome.dict ..." >> $logdir/$logfile
+				sys $vcfsorterExe $refGenomeDict $outfn.raw.norm.vcf > $outfile 2>> $logdir/$logfile
+
+				// sys echo "Fix up missing INFO fields ..." >> $logdir/$logfile
+				// sys perl $utilPath/$fixVcfHeaderExe -f $outfn.raw.vcf -o $outfn.reheader.vcf >> $logdir/$logfile 2>&1
+				// sys echo "Normalize variants ..." >> $logdir/$logfile
+				// sys cat $outfn.reheader.vcf | $vcflibExe/vcfallelicprimitives --keep-info --keep-geno 2>> $logdir/$logfile | $vtExe normalize -r $refGenome - > $outfn.reheader.norm.vcf 2>> $logdir/$logfile
+				// sys echo "Reordering chrom to be consistent with genome.dict ..." >> $logdir/$logfile
+				// sys $vcfsorterExe $refGenomeDict $outfn.reheader.norm.vcf > $outfile 2>> $logdir/$logfile
+
+				sys echo "... Done!" >> $logdir/$logfile
+				sys sleep $safeSleep
+
+			}
+
+			tids.push(tid)	
+		}
+		else if(xargs == 1) {
+			//run mpileup in parallel
+			tid = task(outfile + ".header" <- infiles, cpus := threads, mem := memory, \
+				infileTotal > 0) {
+				sys echo "$sample::mpileupPara"
+				sys $modload
+				//start mpileup on bins
+				sys echo -e "$inputString" > $infilelist
+				sys $vcfutilsExe splitchr -l $bin $refGenome.fai > $binlist
+				sys if [ -e $logdir/$logfile ]; then rm $logdir/$logfile; fi
+				sys cat $binlist | xargs -I {} -n 1 -P $threads sh -c "$mpileupExe -SDuf $refGenome -m $minIndelReadCnt -F 0.0002 -M 99 -q $minMapQ -Q $minBaseQ -r {} -b $infilelist 2>> $logdir/$logfile | $bcftoolsExe view -N -vceg - 2>> $logdir/$logfile | $vcfutilsExe varFilter -d $minDepth -D $maxDepth -a $minVarReadCnt - > $tmpdir/$outfn.{}.vcf 2>> $logdir/$logfile"
+				//cat output files
+				sys grep "^#" $tmpdir/$outfn.`head -1 $binlist`.vcf > $outfile.header
+				// for loop does not work within sys... variable $string can't be masked
+				//sys for string in `cat $binlist`; do grep -v "^#" $tmpdir/$outfn.\$string.vcf >> $outfile 2>> $logdir/$logfile; done
+				sys sleep $safeSleep
+			
+			}
+			// this wait is required!!! otherwise the next step will start without waiting...WHY?
+			wait tid
+			if(outfile <- outfile + ".header") {
+				sys echo "Merge variants ..." >> $logdir/$logfile
+				bins := binlist.readLines()
+				sys cat $outfile.header > $outdir/$outfn.raw.vcf 2>> $logdir/$logfile
+				for(string bin : bins) {
+					//sys echo $tmpdir/$outfn.$bin.vcf
+					// note that grep -v "^#" does NOT work within sys...
+					sys awk '$1!~/^#/' $tmpdir/$outfn.$bin.vcf >> $outdir/$outfn.raw.vcf 2>> $logdir/$logfile
+				} 
+
+				outfn = outdir + "/" + outfn
+				
+				sys sleep 1
+				sys echo "Normalize variants ..." >> $logdir/$logfile
+				sys cat $outfn.raw.vcf | $vcflibExe/vcfallelicprimitives --keep-info --keep-geno 2>> $logdir/$logfile | $vtExe normalize -r $refGenome - > $outfn.raw.norm.vcf 2>> $logdir/$logfile
+				sys sleep 1
+				sys echo "Reordering chrom to be consistent with genome.dict ..." >> $logdir/$logfile
+				sys $vcfsorterExe $refGenomeDict $outfn.raw.norm.vcf > $outfile 2>> $logdir/$logfile
+
+				// sys echo "Fix up missing INFO fields ..." >> $logdir/$logfile
+				// sys perl $utilPath/$fixVcfHeaderExe -f $outfn.raw.vcf -o $outfn.reheader.vcf >> $logdir/$logfile 2>&1
+				// sys echo "Normalize variants ..." >> $logdir/$logfile
+				// sys cat $outfn.reheader.vcf | $vcflibExe/vcfallelicprimitives --keep-info --keep-geno 2>> $logdir/$logfile | $vtExe normalize -r $refGenome - > $outfn.reheader.norm.vcf 2>> $logdir/$logfile
+				// sys echo "Reordering chrom to be consistent with genome.dict ..." >> $logdir/$logfile
+				// sys $vcfsorterExe $refGenomeDict $outfn.reheader.norm.vcf > $outfile 2>> $logdir/$logfile
+
+				sys echo "... Done!" >> $logdir/$logfile
+			}
+
+			tids.push(tid)	
+		}	
+	}
+	else {
+		println info(modname, " task=run_mpileup | proj=$sample | run=0")
+	}
+
+	// println info(modname, " END | sm=$sample")
+
+	return tids
+}

@@ -1,0 +1,111 @@
+#!/usr/bin/env bds
+
+include "print.bds"
+include "getmem.bds"
+
+string[] bedtools(string sample, string util, string refGenome, string targetfile, string infile, string outfile, string outdir, string logfile, string logdir, string softwareConfig) {
+
+	// initialize
+	string{} swParam = config(softwareConfig)
+	string[] modlist
+	string modname = "ExScaliburGMD::bedtools"
+	string bedtoolsExe
+	string modsource
+	string modload = ""
+	string javaMaxMemStr = ""
+	int threads = 1
+	int memory = 1
+
+	string[] tids
+	string tid
+	string[] infiles = infile.split(",")
+	string in1
+	string in2
+	string inputString = ""
+	int infileTotal
+	int maxRecordsInMem
+
+	// assign values
+	if(swParam.hasKey("java_module")) { modlist.push(swParam{"java_module"}) }
+	if(swParam.hasKey("main_module_source")) { modsource = swParam{"main_module_source"} }
+	if(swParam.hasKey("bedtools_exe")) { bedtoolsExe = swParam{"bedtools_exe"} }
+	if(swParam.hasKey("bedtools_module")) { modlist.push(swParam{"bedtools_module"}) }
+	if(swParam.hasKey("bedtools_threads")) { threads = swParam{"bedtools_threads"}.parseInt() }
+	if(swParam.hasKey("bedtools_mem")) { memory = swParam{"bedtools_mem"}.parseInt() }
+
+	if(modsource.length() > 0) { modload = ". $modsource; " }
+	for(string mod : modlist) { modload += "module load $mod; " }
+	memory = getmem(memory * G, threads)	
+
+	infileTotal = infiles.size()
+	if(infileTotal == 2) { (in1, in2) = infiles }
+	
+	// println info(modname, "START | sm=$sample | util=$util | inTotal=$infileTotal")
+
+	// run start
+	if(! outdir.isDir()) { outdir.mkdir() }
+	if(! logdir.isDir()) { logdir.mkdir() }	
+
+	// merge bed files
+	if(util == "merge") {
+		if(infileTotal == 1) {
+			if(outfile <- infile) {
+				println info(modname, "task=run_copy | sm=$sample | run=1")
+				tid = task(outfile <- infile, cpus := threads, mem := memory) {
+					sys echo "$sample::copyfile"
+					sys cp -p $infile $outfile 2> $logdir/$logfile
+				}
+				tids.push(tid)
+			}
+			else {
+				println info(modname, "task=run_copy | sm=$sample | run=0")
+			}
+		}
+		else if(infileTotal >= 2 ) {
+			if(outfile <- infiles) {
+				println info(modname, "task=run_merge | sm=$sample | run=1")
+
+				catfile := outfile + ".cat.tmp"
+				for(string in : infiles) { inputString += " $in" }
+				
+				tid = task(outfile <- infiles, cpus := threads, mem := memory) {
+					sys echo "$sample::bedtools::$util"
+					sys $modload
+					sys cat $inputString > $catfile 2>> $logdir/$logfile
+					sys $bedtoolsExe sort -i $catfile | $bedtoolsExe $util -i stdin | $bedtoolsExe sort -i stdin > $outfile 2>> $logdir/$logfile
+					sys rm $catfile
+				}
+
+				tids.push(tid)
+			}
+			else {
+				println info(modname, "task=run_merge | sm=$sample | run=0")
+			}
+		}
+	}
+
+	// calculate exon cov
+	if((infileTotal == 1) && (util == "coverage")) {
+		if(outfile <- infile) {
+			println info(modname, "task=run_exonCov | sm=$sample | run=1")
+			
+			tid = task(outfile <- infile, cpus := threads, mem := memory, \
+				infile.length() > 0) {
+				sys echo "$sample::bedtools$util"
+				sys $modload
+				sys $bedtoolsExe $util -abam $infile -b $targetfile -hist | grep "^all" > $outfile 2>> $logdir/$logfile
+			}
+
+			tids.push(tid)
+		}
+		else {
+			println info(modname, "task=run_exonCov | sm=$sample | run=0")
+		}
+		
+	}
+
+	// println info(modname, "END | sm=$sample | util=$util | inTotal=$infileTotal")
+
+	return tids
+}
+

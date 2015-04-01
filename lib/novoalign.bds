@@ -1,0 +1,266 @@
+#!/usr/bin/env bds
+
+
+// run novoalign program 
+// note that in order to avoid error msg "fail to build FASTA index", make sure to have genome.nix.fai as genome fai filename (e.g. ln -s ucsc.hg19.fasta.fai ucsc.hg19.nix.fai)
+// samfaipath code: https://toolshed.g2.bx.psu.edu/repository/view_changeset?ctx_str=74f5ea818cea&id=67a65413fd94e97c
+// with the error msg, program will still run.
+
+include "print.bds"
+include "getmem.bds"
+include "picard.bds"
+include "checkbam.bds"
+
+string[] novoalign(string sample, string readgroup, string aligner, string rgstring, string refGenome, string tmpdir, string infile, string outfile, string outdir, string logfile, string logdir, string softwareConfig) {
+
+	// initialize
+	string{} swParam = config(softwareConfig)
+	string[] modlist
+	string modname = "ExScaliburGMD::novoalign"
+	string novoalignExe
+	string samtoolsExe
+	string modsource
+	string modload = ""
+	int threads = 1
+	int memory = 1
+	int fastqFormat = 33
+
+	// println info(modname, "START | sm=$sample | rg=$readgroup")
+
+	string[] tids
+	string[] infiles = infile.split(",")
+	string[] tid4
+	string in1
+	string in2
+	string in3
+	string tid1
+	string tid2
+	string tid3
+	string formatParam = " -F STDFQ"
+	string libParam = ""
+	string clipParam = ""
+	string stripAdpParam = ""
+	string reportRepeats = ""
+	int infileTotal
+	int minMapQ = 0
+	int libFragLength = 250
+	int libFragStd = 50
+	int maxMemPerThread
+	int runSoftClip = 0
+	int runStripAdp = 0
+	int readsTotal // check empty BAM file (with only header but NO reads!)
+
+	// assign values
+	if(swParam.hasKey("java_module")) { modlist.push(swParam{"java_module"}) }
+	if(swParam.hasKey("main_module_source")) { modsource = swParam{"main_module_source"} }
+	if(swParam.hasKey("main_fastq_format")) { fastqFormat = swParam{"main_fastq_format"}.parseInt() }
+	if(swParam.hasKey("main_min_map_qual")) { minMapQ = swParam{"main_min_map_qual"}.parseInt() }
+	if(swParam.hasKey("novoalign_exe")) { novoalignExe = swParam{"novoalign_exe"} }
+	if(swParam.hasKey("novoalign_module")) { modlist.push(swParam{"novoalign_module"}) }
+	if(swParam.hasKey("novoalign_threads")) { threads = swParam{"novoalign_threads"}.parseInt() }
+	if(swParam.hasKey("novoalign_mem")) { memory = swParam{"novoalign_mem"}.parseInt() }
+	if(swParam.hasKey("novoalign_softclip")) { runSoftClip = swParam{"novoalign_softclip"}.parseInt() }
+	if(swParam.hasKey("novoalign_stripadaptor")) { runStripAdp = swParam{"novoalign_stripadaptor"}.parseInt() }
+	if(swParam.hasKey("novoalign_report_repeats")) { reportRepeats = swParam{"novoalign_report_repeats"} }
+	if(swParam.hasKey("novoalign_fragment_length")) { libFragLength = swParam{"novoalign_fragment_length"}.parseInt() }
+	if(swParam.hasKey("novoalign_fragment_std")) { libFragStd = swParam{"novoalign_fragment_std"}.parseInt() }
+	if(swParam.hasKey("samtools_exe")) { samtoolsExe = swParam{"samtools_exe"} }
+	if(swParam.hasKey("samtools_module")) { modlist.push(swParam{"samtools_module"}) }
+	// if(swParam.hasKey("samtools_max_mem_per_thread")) { maxMemPerThread = swParam{"samtools_max_mem_per_thread"}.parseInt() }
+
+	if(modsource.length() > 0) { modload = ". $modsource; " }
+	for(string mod : modlist) { modload += "module load $mod; " }
+	memory = getmem(memory * G, threads)
+
+	infileTotal = infiles.size()
+	(in1, in2, in3) = infiles
+	// maxMemPerThread = memory / threads
+
+	// prepare format options
+	if(fastqFormat == 64) { formatParam = " -F ILMFQ" }
+	else if(fastqFormat != 33) {
+		println info(modname, "sm=$sample | rg=$readgroup | Warning! fastq format is neither 33 nor 64. Use [33] as default")
+	}
+	// prepare  paired-end library options
+	if(libFragLength < 0)  { libFragLength = 250;  }
+	if(libFragStd < 0)  { libFragStd = 50; }
+	if((libFragLength > 0) && (libFragStd > 0)) { libParam = libParam + " -i PE " + libFragLength + "," + libFragStd }
+	
+	// whether to activate softclipping when mapping
+	if(runSoftClip == 0) { clipParam = " -o FullNW" }
+	else if(runSoftClip == 1) { clipParam = " -o Softclip" }
+
+	// whether to activate adapter stripping
+	if(runStripAdp == 1) { stripAdpParam = " -a" }
+	
+	// run start
+	if(! outdir.isDir()) { outdir.mkdir() }	
+	if(! logdir.isDir()) { logdir.mkdir() }	
+	if(! tmpdir.isDir()) { tmpdir.mkdir() }
+
+	// single-end
+	if(infileTotal == 1) {
+		outfileSE := outdir + "/" + readgroup + ".se.srt.bam"
+		logSE := logfile.swapExt(".log",".se.log")
+
+		readsTotal = CheckBAM(outfileSE, modsource, modlist, samtoolsExe);
+
+		// run aln
+		if((outfileSE + ".bai" <- in1) || (readsTotal == 0)) { 
+			println info(modname, "task=run_novoalign_single | sm=$sample | rg=$readgroup | run=1")
+
+			tid1 = NOVOsingle(readgroup, rgstring, refGenome, outdir, logSE, logdir, novoalignExe, threads, memory, modload, in1, minMapQ, clipParam, stripAdpParam, reportRepeats, outfileSE, readsTotal)
+			
+		}
+		else {
+			println info(modname, " task=run_novoalign_single | rg=$readgroup | run=0")
+		}
+
+		// rename bam
+		if(outfile <- outfileSE) { 
+			wait tid1
+			println info(modname, "task=rename_bamfile | sm=$sample | rg=$readgroup | run=1")
+			tid3 = task(outfile <- outfileSE, cpus := threads, mem := memory, \
+				outfileSE.exists()) {
+				sys echo "$sample::$readgroup::renameBAM"
+				sys $modload
+				sys echo -e "+++++++++ Rename bam +++++++++ " >> $logdir/$logSE 
+				sys mv $outfileSE $outfile >> $logdir/$logSE 2>&1
+				sys $samtoolsExe index $outfile >> $logdir/$logSE 2>&1
+				sys echo -e "+++++++++ Done! +++++++++ " >> $logdir/$logSE 
+			}		
+
+			tids.push(tid3)
+		}
+		else {
+			println info(modname, "task=rename_bamfile | sm=$sample | rg=$readgroup | run=0")
+		}
+	}
+	// paired-end
+	else if(infileTotal >= 2) {
+		outfilePE := outdir + "/" + readgroup + ".pe.srt.bam"
+		outfileSE := outdir + "/" + readgroup + ".se.srt.bam"
+		logSE := logfile.swapExt(".log",".se.log")
+		logPE := logfile.swapExt(".log",".pe.log")
+
+		readsTotal = CheckBAM(outfilePE, modsource, modlist, samtoolsExe);
+
+		// run PE on in1 and in2
+		if((outfilePE + ".bai" <- [in1,in2]) || (readsTotal == 0)) { 
+			println info(modname, "task=run_novoalign_paired | sm=$sample | rg=$readgroup | run=1")
+
+			tid1 = NOVOpaired(readgroup, rgstring, refGenome, outdir, logPE, logdir, novoalignExe, threads, memory, modload, in1, in2, minMapQ, clipParam, stripAdpParam, reportRepeats, libParam, outfilePE, readsTotal)
+		}
+		else {
+			println info(modname, "task=run_novoalign_paired | sm=$sample | rg=$readgroup | run=0")
+		}
+
+		// run SE on in3
+		if(infileTotal == 3) { 
+
+			readsTotal = CheckBAM(outfileSE, modsource, modlist, samtoolsExe);
+
+			if((outfileSE + ".bai" <- in3) || (readsTotal == 0)){
+				println info(modname, "task=run_novoalign_unpaired | sm=$sample | rg=$readgroup | run=1")
+
+				tid2 = NOVOsingle(readgroup, rgstring, refGenome, outdir, logSE, logdir, novoalignExe, threads, memory, modload, in3, minMapQ, clipParam, stripAdpParam, reportRepeats, outfileSE, readsTotal)
+				
+			}
+			else {
+				println info(modname, "task=run_novoalign_unpaired | sm=$sample | rg=$readgroup | run=0")
+			}
+		}
+
+		// if no in3, rename PE bam 
+		if(infileTotal == 2) {
+			if(outfile <- outfilePE) { 
+				wait tid1
+				println info(modname, "task=rename_bamfile | sm=$sample | rg=$readgroup | run=1")
+				tid3 = task(outfile <- outfilePE, cpus := threads, mem := memory, \
+					outfilePE.exists()) {
+					sys echo "$sample::$readgroup::renameBAM"
+					sys $modload
+					sys echo -e "+++++++++ Rename bam +++++++++ " >> $logdir/$logPE 
+					sys mv $outfilePE $outfile >> $logdir/$logPE 2>&1
+					sys $samtoolsExe index $outfile >> $logdir/$logPE 2>&1
+					sys echo -e "+++++++++ Done! +++++++++ " >> $logdir/$logPE 
+				}		
+
+				tids.push(tid3)
+			}
+			else {
+				println info(modname, "task=rename_bamfile | sm=$sample | rg=$readgroup | run=0")
+			}
+		}
+		// if with in3. merge pe.bam and se.bam
+		else if(infileTotal == 3) { 
+			// note that picard merge will take place first if without wait... 
+			wait [tid1,tid2]
+
+			// note that sometimes it complains pe.srt.bam does not exist for picard (even with wait command...)
+			if((outfile <- [outfilePE,outfileSE]) && outfilePE.exists() && outfileSE.exists()) { 
+				println info(modname, "task=merge_bamfiles | sm=$sample | rg=$readgroup | run=1")
+				sys echo -e "+++++++++ Merge bams +++++++++ " >> $logdir/$logSE 
+
+				util := "MergeSamFiles"
+				infile := outfilePE + "," + outfileSE
+				logfile := readgroup + "." + aligner + ".picard_" + util + ".log"
+				tid4 = picard(sample + "::" + readgroup, util, refGenome, tmpdir, infile, outfile, outdir, logfile, logdir, softwareConfig)
+
+				tids += tid4
+				sys echo -e "+++++++++ Done! +++++++++ " >> $logdir/$logSE 
+				sys echo -e "+++++++++ Done! +++++++++ " >> $logdir/$logPE 
+			}
+			else {
+				println info(modname, "task=merge_bamfiles | sm=$sample | rg=$readgroup | run=0")
+			}
+		}
+
+	}
+	
+	// println info(modname, "END | sm=$sample | rg=$readgroup")
+	
+	return tids
+}
+
+
+//------------- FUNCTION -------------//
+
+string NOVOsingle(string readgroup, string rgstring, string refGenome, string outdir, string logfile, string logdir, string novoalignExe, int threads, int memory, string modload, string in1, int minMapQ, string clipParam, string stripAdpParam, string reportRepeats, string outfileSE, int readsTotal) {
+
+	string tid 
+
+	tid = task(((outfileSE + ".bai" <- in1) || (readsTotal == 0)), cpus := threads, mem := memory, \
+		in1.length() > 0) {
+		sys echo "$sample::$readgroup::novoSE"
+		sys $modload
+		sys echo -e "+++++++++ Running novoalign single-end read mapping +++++++++ " > $logdir/$logfile 
+		sys $novoalignExe $clipParam $stripAdpParam -r $reportRepeats -o SAM $rgstring -d $refGenome -o Sync -c $threads -f $in1 2>> $logdir/$logfile | grep -v "^@PG" | $samtoolsExe view -F 4 -q $minMapQ -uT $refGenome -o $outdir/$readgroup.se.bam - 2>> $logdir/$logfile
+		sys echo -e "+++++++++ Sort bam +++++++++ " >> $logdir/$logfile 
+		sys $samtoolsExe sort -@ $threads -m $memory $outdir/$readgroup.se.bam $outdir/$readgroup.se.srt 2>> $logdir/$logfile
+		sys echo -e "+++++++++ Index bam +++++++++ " >> $logdir/$logfile 
+		sys $samtoolsExe index $outdir/$readgroup.se.srt.bam >> $logdir/$logfile 2>&1
+	}
+
+	return tid 
+}
+
+string NOVOpaired(string readgroup, string rgstring, string refGenome, string outdir, string logfile, string logdir, string novoalignExe, int threads, int memory, string modload, string in1, string in2, int minMapQ, string clipParam, string stripAdpParam, string reportRepeats, string libParam, string outfilePE, int readsTotal) {
+
+	string tid 
+
+	tid = task(((outfilePE + ".bai" <- [in1,in2]) || (readsTotal == 0)), cpus := threads, mem := memory, \
+		in1.length() > 0) {
+		sys echo "$sample::$readgroup::novoPE"
+		sys $modload
+		sys echo -e "+++++++++ Running novoalign paired-end read mapping +++++++++ " > $logdir/$logfile 
+		sys $novoalignExe $clipParam $stripAdpParam $libParam -r $reportRepeats -o SAM $rgstring -d $refGenome -o Sync -c $threads -f $in1 $in2 2>> $logdir/$logfile | grep -v "^@PG" | $samtoolsExe view -F 4 -q $minMapQ -uT $refGenome -o $outdir/$readgroup.pe.bam - 2>> $logdir/$logfile
+		sys echo -e "+++++++++ Sort bam +++++++++ " >> $logdir/$logfile 
+		sys $samtoolsExe sort -@ $threads -m $memory $outdir/$readgroup.pe.bam $outdir/$readgroup.pe.srt 2>> $logdir/$logfile
+		sys echo -e "+++++++++ Index bam +++++++++ " >> $logdir/$logfile 
+		sys $samtoolsExe index $outdir/$readgroup.pe.srt.bam >> $logdir/$logfile 2>&1
+	}
+
+	return tid 
+}
+

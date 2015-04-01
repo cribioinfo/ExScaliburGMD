@@ -1,0 +1,362 @@
+#!/usr/bin/env bds
+
+
+// run bwa program 
+
+include "print.bds"
+include "getmem.bds"
+include "picard.bds"
+include "checkbam.bds"
+
+string[] bwa(string sample, string readgroup, string aligner, string rgstring, string refGenome, string tmpdir, string infile, string outfile, string outdir, string logfile, string logdir, string softwareConfig) {
+
+	// initialize
+	string{} swParam = config(softwareConfig)
+	string[] modlist
+	string modname = "ExScaliburGMD::bwa"
+	string bwaExe
+	string samtoolsExe
+	string modsource
+	string modload = ""
+	int threads = 1
+	int memory = 1
+	int fastqFormat = 33
+
+	// println info(modname, "START | sm=$sample | rg=$readgroup")
+
+	string[] tids
+	string[] infiles = infile.split(",")
+	string[] tid4
+	string in1
+	string in2
+	string in3
+	string tid1
+	string tid2
+	string tid3
+	string formatParam = ""
+	int infileTotal
+	int minBaseQ = 0
+	int minMapQ = 0
+	int alnPerRead
+	int barLength
+	int maxSeedOcr
+	int maxMateRescue
+	int maxMemPerThread
+	int maxSEhits
+	int maxPEhits
+	int maxDisPEhits
+	int readsTotal // check empty BAM file (with only header but NO reads!)
+
+	// assign values
+	if(swParam.hasKey("java_module")) { modlist.push(swParam{"java_module"}) }
+	if(swParam.hasKey("main_module_source")) { modsource = swParam{"main_module_source"} }
+	if(swParam.hasKey("main_min_map_qual")) { minMapQ = swParam{"main_min_map_qual"}.parseInt() }
+	if(swParam.hasKey("bwa_exe")) { bwaExe = swParam{"bwa_exe"} }
+	if(swParam.hasKey("bwa_module")) { modlist.push(swParam{"bwa_module"}) }
+	if(swParam.hasKey("bwa_threads")) { threads = swParam{"bwa_threads"}.parseInt() }
+	if(swParam.hasKey("bwa_mem")) { memory = swParam{"bwa_mem"}.parseInt() }
+	if(swParam.hasKey("bwa_fastq_format")) { fastqFormat = swParam{"bwa_fastq_format"}.parseInt() }
+	if(swParam.hasKey("bwa_min_base_qual")) { minBaseQ = swParam{"bwa_min_base_qual"}.parseInt() }
+	if(swParam.hasKey("bwa_aln_per_read")) { alnPerRead = swParam{"bwa_aln_per_read"}.parseInt() }
+	if(swParam.hasKey("bwa_barcode_length")) { barLength = swParam{"bwa_barcode_length"}.parseInt() }
+	if(swParam.hasKey("bwa_max_SE_hits")) { maxSEhits = swParam{"bwa_max_SE_hits"}.parseInt() }
+	if(swParam.hasKey("bwa_max_PE_hits")) { maxPEhits = swParam{"bwa_max_PE_hits"}.parseInt() }
+	if(swParam.hasKey("bwa_max_discor_PE_hits")) { maxDisPEhits = swParam{"bwa_max_discor_PE_hits"}.parseInt() }
+	if(swParam.hasKey("bwa_max_seed_occur")) { maxSeedOcr = swParam{"bwa_max_seed_occur"}.parseInt() }
+	if(swParam.hasKey("bwa_max_mate_rescue")) { maxMateRescue = swParam{"bwa_max_mate_rescue"}.parseInt() }
+	if(swParam.hasKey("samtools_exe")) { samtoolsExe = swParam{"samtools_exe"} }
+	if(swParam.hasKey("samtools_module")) { modlist.push(swParam{"samtools_module"}) }
+	// if(swParam.hasKey("samtools_max_mem_per_thread")) { maxMemPerThread = swParam{"samtools_max_mem_per_thread"}.parseInt() }
+
+	// note that sometimes ec2 complains "/bin/bash: samtools: command not found" and 
+	// gmd will keep re-generating those BAM files because readsTotal will always be 0 (condition IS true)
+	// it is because you can NOT pass variable with ";" symbol in its value coz bds considers ";" as breaks!!!
+	// as a result, only string before the first ";" is passed down to function...
+
+	// println "modload:"
+	if(modsource.length() > 0) { modload = ". $modsource; " }
+	for(string mod : modlist) { 
+		modload += "module load $mod; "
+		// println "mod = $mod"
+		// println "modload = $modload" 
+	}
+	memory = getmem(memory * G, threads)
+
+	// println "modlist:"
+	// printArray(modlist)
+
+	infileTotal = infiles.size()
+	(in1, in2, in3) = infiles
+	// maxMemPerThread = memory / threads
+
+	// sanity check
+	if((infileTotal < 1) || (infileTotal > 3)) { 
+		error info(modname, "sm=$sample | rg=$readgroup | infiles and/or outfiles count incorrect! in=$infileTotal" ) 
+	}	
+
+	// set format parameter (bwa aln only)
+	if(fastqFormat == 64) { formatParam = " -I" }
+	else if(fastqFormat != 33) {
+		println info(modname, "sm=$sample | rg=$readgroup | Warning! fastq format is neither 33 nor 64. Use [33] as default")
+	}
+	
+	// run start
+	if(! outdir.isDir()) { outdir.mkdir() }	
+	if(! logdir.isDir()) { logdir.mkdir() }	
+	if(! tmpdir.isDir()) { tmpdir.mkdir() }
+
+	// single-end
+	if(infileTotal == 1) {
+		outfileSE := outdir + "/" + readgroup + ".se.srt.bam"
+		logSE := logfile.swapExt(".log",".se.log")
+
+		// check whether the input file exists but is empty! (e.g. only carries the header ...)
+		readsTotal = CheckBAM(outfileSE, modsource, modlist, samtoolsExe);
+
+		// run aln
+		if((outfileSE + ".bai" <- in1) || (readsTotal == 0)) { 
+			println info(modname, "task=run_bwa_single | sm=$sample | rg=$readgroup | run=1")
+
+			if(aligner == "bwaaln") {
+				tid1 = BWAALNsingle(readgroup, rgstring, refGenome, outdir, logSE, logdir, bwaExe, samtoolsExe, threads, memory, modload, formatParam, in1, minBaseQ, minMapQ, alnPerRead, barLength, maxMemPerThread, maxPEhits, maxDisPEhits, outfileSE, readsTotal)
+				tids.push(tid1)
+			}
+			else if ((aligner == "bwamem") || (aligner == "bwa")) {
+				tid1 = BWAMEMsingle(readgroup, rgstring, refGenome, outdir, logSE, logdir, bwaExe, samtoolsExe, threads, memory, modload, in1, minMapQ, maxSeedOcr, maxMateRescue, maxMemPerThread, outfileSE, readsTotal)
+				tids.push(tid1)
+			}
+		}
+		else {
+			println info(modname, " task=run_bwa_single | rg=$readgroup | run=0")
+		}
+
+		// wait tids
+
+		// rename bam
+		if(outfile <- outfileSE) { 
+			wait tid1
+			println info(modname, "task=rename_bamfile | sm=$sample | rg=$readgroup | run=1")
+			tid3 = task(outfile <- outfileSE, cpus := threads, mem := memory, \
+				outfileSE.exists()) {
+				sys echo "$sample::$readgroup::renameBAM"
+				sys $modload
+				sys echo -e "+++++++++ Rename bam +++++++++ " >> $logdir/$logSE 
+				sys mv $outfileSE $outfile >> $logdir/$logSE 2>&1
+				sys $samtoolsExe index $outfile >> $logdir/$logSE 2>&1
+				sys echo -e "+++++++++ Done! +++++++++ " >> $logdir/$logSE 
+				sys sleep $safeSleep
+			}		
+
+			tids.push(tid3)
+		}
+		else {
+			println info(modname, "task=rename_bamfile | sm=$sample | rg=$readgroup | run=0")
+		}
+	}
+	// paired-end
+	else if(infileTotal >= 2) {
+		outfilePE := outdir + "/" + readgroup + ".pe.srt.bam"
+		outfileSE := outdir + "/" + readgroup + ".se.srt.bam"
+		logSE := logfile.swapExt(".log",".se.log")
+		logPE := logfile.swapExt(".log",".pe.log")
+
+		readsTotal = CheckBAM(outfilePE, modsource, modlist, samtoolsExe);
+
+		// run PE on in1 and in2
+		if((outfilePE + ".bai" <- [in1,in2]) || (readsTotal == 0)) { 
+			println info(modname, "task=run_bwa_paired | sm=$sample | rg=$readgroup | run=1")
+
+			if(aligner == "bwaaln") {
+				tid1 = BWAALNpaired(readgroup, rgstring, refGenome, outdir, logPE, logdir, bwaExe, samtoolsExe, threads, memory, modload, formatParam, in1, in2, minBaseQ, minMapQ, alnPerRead, barLength, maxMemPerThread, maxPEhits, maxDisPEhits, outfilePE, readsTotal)
+				tids.push(tid1)
+			}
+			else if ((aligner == "bwamem") || (aligner == "bwa")) {
+				tid1 = BWAMEMpaired(readgroup, rgstring, refGenome, outdir, logPE, logdir, bwaExe, samtoolsExe, threads, memory, modload, in1, in2, minMapQ, maxSeedOcr, maxMateRescue, maxMemPerThread, outfilePE, readsTotal)
+				tids.push(tid1)
+			}
+		}
+		else {
+			println info(modname, "task=run_bwa_paired | sm=$sample | rg=$readgroup | run=0")
+		}
+
+		// run SE on in3
+		if(infileTotal == 3) { 
+
+			readsTotal = CheckBAM(outfileSE, modsource, modlist, samtoolsExe);
+
+			if((outfileSE + ".bai" <- in3) || (readsTotal == 0)){
+				println info(modname, "task=run_bwa_unpaired | sm=$sample | rg=$readgroup | run=1")
+
+				if(aligner == "bwaaln") {
+					tid2 = BWAALNsingle(readgroup, rgstring, refGenome, outdir, logSE, logdir, bwaExe, samtoolsExe, threads, memory, modload, formatParam, in3, minBaseQ, minMapQ, alnPerRead, barLength, maxMemPerThread, maxPEhits, maxDisPEhits, outfileSE, readsTotal)
+					tids.push(tid2)
+				}
+				else if ((aligner == "bwamem") || (aligner == "bwa")) {
+					tid2 = BWAMEMsingle(readgroup, rgstring, refGenome, outdir, logSE, logdir, bwaExe, samtoolsExe, threads, memory, modload, in3, minMapQ, maxSeedOcr, maxMateRescue, maxMemPerThread, outfileSE, readsTotal)
+					tids.push(tid2)
+				}
+			}
+			else {
+				println info(modname, "task=run_bwa_unpaired | sm=$sample | rg=$readgroup | run=0")
+			}
+		}
+
+		// wait tids
+		
+		// if no in3, rename PE bam 
+		if(infileTotal == 2) {
+			if(outfile <- outfilePE) { 
+				wait tid1
+				println info(modname, "task=rename_bamfile | sm=$sample | rg=$readgroup | run=1")
+				tid3 = task(outfile <- outfilePE, cpus := threads, mem := memory, \
+					outfilePE.exists()) {
+					sys echo "$sample::$readgroup::renameBAM"
+					sys $modload
+					sys echo -e "+++++++++ Rename bam +++++++++ " >> $logdir/$logPE 
+					sys mv $outfilePE $outfile >> $logdir/$logPE 2>&1
+					sys $samtoolsExe index $outfile >> $logdir/$logPE 2>&1
+					sys echo -e "+++++++++ Done! +++++++++ " >> $logdir/$logPE		
+					sys sleep $safeSleep		
+				}		
+				
+				tids.push(tid3)
+			}
+			else {
+				println info(modname, "task=rename_bamfile | sm=$sample | rg=$readgroup | run=0")
+			}
+		}
+		// if with in3. merge pe.bam and se.bam
+		else if(infileTotal == 3) { 
+			// note that picard merge will take place first if without wait... 
+			wait [tid1,tid2]
+
+			if(outfile <- [outfilePE,outfileSE]) { 
+				println info(modname, "task=merge_bamfiles | sm=$sample | rg=$readgroup | run=1")
+				sys echo -e "+++++++++ Merge bams +++++++++ " >> $logdir/$logSE 
+
+				util := "MergeSamFiles"
+				infile := outfilePE + "," + outfileSE
+				logfile := readgroup + "." + aligner + ".picard_" + util + ".log"
+				tid4 = picard(sample + "::" + readgroup, util, refGenome, tmpdir, infile, outfile, outdir, logfile, logdir, softwareConfig)
+
+				tids += tid4
+				sys echo -e "+++++++++ Done! +++++++++ " >> $logdir/$logSE 
+				sys echo -e "+++++++++ Done! +++++++++ " >> $logdir/$logPE 
+			}
+			else {
+				println info(modname, "task=merge_bamfiles | sm=$sample | rg=$readgroup | run=0")
+			}
+		}
+
+	}
+	
+	// println info(modname, "END | sm=$sample | rg=$readgroup")
+
+	return tids
+}
+
+
+//------------- FUNCTION -------------//
+
+string BWAALNsingle(string readgroup, string rgstring, string refGenome, string outdir, string logfile, string logdir, string bwaExe, string samtoolsExe, int threads, int memory, string modload, string formatParam, string in1, int minBaseQ, int minMapQ, int alnPerRead, int barLength, int maxMemPerThread, int maxPEhits, int maxDisPEhits, string outfileSE, int readsTotal) {
+
+	string tid 
+
+	sai := outdir + "/" + readgroup + ".se.sai"
+	tid = task(outfileSE + ".bai" <- in1, cpus := threads, mem := memory, \
+		in1.length() > 0) {
+		sys echo "$sample::$readgroup::bwaalnSE"
+		sys set -o pipefail
+		sys $modload
+		sys echo -e "+++++++++ Running bwa single-end read mapping +++++++++ " > $logdir/$logfile 
+		sys $bwaExe aln -t $threads -q $minBaseQ -B $barLength -R $alnPerRead $formatParam $refGenome $in1 > $sai 2>> $logdir/$logfile
+		sys sleep 1 
+		sys $bwaExe samse -n $maxSEhits -r $rgstring $refGenome $sai $in1 2>> $logdir/$logfile | grep -v "^@PG" | $samtoolsExe view -F 4 -q $minMapQ -uT $refGenome -o $outdir/$readgroup.se.bam - 2>> $logdir/$logfile 
+		sys sleep 1 
+		sys echo -e "+++++++++ Sort bam +++++++++ " >> $logdir/$logfile 
+		sys $samtoolsExe sort -@ $threads -m $memory $outdir/$readgroup.se.bam $outdir/$readgroup.se.srt 2>> $logdir/$logfile
+		sys sleep 1 
+		sys echo -e "+++++++++ Index bam +++++++++ " >> $logdir/$logfile 
+		sys $samtoolsExe index $outdir/$readgroup.se.srt.bam >> $logdir/$logfile 2>&1
+		sys sleep $safeSleep
+	}
+
+	return tid 
+}
+
+string BWAMEMsingle(string readgroup, string rgstring, string refGenome, string outdir, string logfile, string logdir, string bwaExe, string samtoolsExe, int threads, int memory, string modload, string in1, int minMapQ, int maxSeedOcr, int maxMateRescue, int maxMemPerThread, string outfileSE, int readsTotal) {
+
+	string tid 
+	string outfileSEfn = outfileSE.removeExt(".bam")
+	
+	tid = task(outfileSE + ".bai" <- in1, cpus := threads, mem := memory, \
+		in1.length() > 0) {
+		sys echo "$sample::$readgroup::bwamemSE"
+		sys set -o pipefail
+		sys $modload
+		sys echo -e "+++++++++ Running bwa single-end read mapping +++++++++ " > $logdir/$logfile 
+		sys $bwaExe mem -t $threads -c $maxSeedOcr -m $maxMateRescue -R $rgstring -M $refGenome $in1 2>> $logdir/$logfile | grep -v "^@PG" | $samtoolsExe view -F 4 -q $minMapQ -uT $refGenome -o $outdir/$readgroup.se.bam - 2>> $logdir/$logfile
+		sys sleep 1 
+		sys echo -e "+++++++++ Sort bam +++++++++ " >> $logdir/$logfile 
+		sys $samtoolsExe sort -@ $threads -m $memory $outdir/$readgroup.se.bam $outfileSEfn 2>> $logdir/$logfile
+		sys sleep 1 
+		sys echo -e "+++++++++ Index bam +++++++++ " >> $logdir/$logfile 
+		sys $samtoolsExe index $outfileSE >> $logdir/$logfile 2>&1
+		sys sleep $safeSleep
+	}
+
+	return tid 
+}
+
+string BWAALNpaired(string readgroup, string rgstring, string refGenome, string outdir, string logfile, string logdir, string bwaExe, string samtoolsExe, int threads, int memory, string modload, string formatParam, string in1, string in2, int minBaseQ, int minMapQ, int alnPerRead, int barLength, int maxMemPerThread, int maxPEhits, int maxDisPEhits, string outfilePE, int readsTotal) {
+
+	string tid
+
+	sai1 := outdir + "/" + readgroup + ".R1.sai"
+	sai2 := outdir + "/" + readgroup + ".R2.sai"
+	tid = task(outfilePE + ".bai" <- [in1,in2], cpus := threads, mem := memory, \
+		in1.length() > 0, in2.length() > 0) {
+		sys echo "$sample::$readgroup::bwaalnPE"
+		sys set -o pipefail
+		sys $modload
+		sys echo -e "+++++++++ Running bwa paired-end read mapping +++++++++ " > $logdir/$logfile 
+		sys $bwaExe aln -t $threads -q $minBaseQ -B $barLength -R $alnPerRead $formatParam $refGenome $in1 > $sai1 2>> $logdir/$logfile
+		sys sleep 1 
+		sys $bwaExe aln -t $threads -q $minBaseQ -B $barLength -R $alnPerRead $formatParam $refGenome $in2 > $sai2 2>> $logdir/$logfile
+		sys sleep 1 
+		sys $bwaExe sampe -n $maxPEhits -N $maxDisPEhits -r $rgstring $refGenome $sai1 $sai2 $in1 $in2 2>> $logdir/$logfile | grep -v "^@PG" | $samtoolsExe view -F 4 -q $minMapQ -uT $refGenome -o $outdir/$readgroup.pe.bam - 2>> $logdir/$logfile
+		sys sleep 1 
+		sys echo -e "+++++++++ Sort bam +++++++++ " >> $logdir/$logfile 
+		sys $samtoolsExe sort -@ $threads -m $memory $outdir/$readgroup.pe.bam $outdir/$readgroup.pe.srt 2>> $logdir/$logfile
+		sys sleep 1 
+		sys echo -e "+++++++++ Index bam +++++++++ " >> $logdir/$logfile 
+		sys $samtoolsExe index $outdir/$readgroup.pe.srt.bam 2>> $logdir/$logfile
+		sys sleep $safeSleep
+	}
+
+	return tid 
+}
+
+string BWAMEMpaired(string readgroup, string rgstring, string refGenome, string outdir, string logfile, string logdir, string bwaExe, string samtoolsExe, int threads, int memory, string modload, string in1, string in2, int minMapQ, int maxSeedOcr, int maxMateRescue, int maxMemPerThread, string outfilePE, int readsTotal) {
+
+	string tid
+	string outfilePEfn = outfilePE.removeExt(".bam")
+
+	tid = task(outfilePE + ".bai" <- [in1,in2], cpus := threads, mem := memory, \
+		in1.length() > 0, in2.length() > 0) {
+		sys echo "$sample::$readgroup::bwamemPE"
+		sys set -o pipefail
+		sys $modload
+		sys echo -e "+++++++++ Running bwa paired-end read mapping +++++++++ " > $logdir/$logfile
+		sys $bwaExe mem -t $threads -T $minMapQ -c $maxSeedOcr -m $maxMateRescue -R $rgstring -M $refGenome $in1 $in2 2>> $logdir/$logfile | grep -v "^@PG" | $samtoolsExe view -F 4 -q $minMapQ -uT $refGenome -o $outdir/$readgroup.pe.bam - 2>> $logdir/$logfile
+		sys sleep 1 
+		sys echo -e "+++++++++ Sort bam +++++++++ " >> $logdir/$logfile 
+		sys $samtoolsExe sort -@ $threads -m $memory $outdir/$readgroup.pe.bam $outfilePEfn 2>> $logdir/$logfile
+		sys sleep 1 
+		sys echo -e "+++++++++ Index bam +++++++++ " >> $logdir/$logfile 
+		sys $samtoolsExe index $outfilePE 2>> $logdir/$logfile
+		sys sleep $safeSleep
+	}
+
+	return tid 
+}

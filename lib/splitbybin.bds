@@ -1,0 +1,95 @@
+#!/usr/bin/env bds
+
+
+include "print.bds"
+include "getmem.bds"
+
+string[] splitbybin(string sample, string tmpdir, string outlist, string infile, string outfile, string outdir, string logfile, string logdir, string softwareConfig) {
+
+	// initialize
+	string{} swParam = config(softwareConfig)
+	string[] modlist
+	string modname = "ExScaliburGMD::splitbybin"
+	string exe
+	string path
+	string modsource
+	string modload = ""
+	int threads = 1
+	int memory = 1
+
+	// println info(modname, "START | sm=$sample")
+
+	string[] tids
+	string tid
+	string outfn = outfile.split("/").pop().replace(".bins.txt","")
+	int binsize
+
+	// assign values
+	if(swParam.hasKey("main_module_source")) { modsource = swParam{"main_module_source"} }
+	if(swParam.hasKey("main_bin_size")) { binsize = swParam{"main_bin_size"}.parseInt() }
+	if(swParam.hasKey("util_split_by_bin_exe")) { exe = swParam{"util_split_by_bin_exe"} }
+	if(swParam.hasKey("util_path")) { path = swParam{"util_path"} }
+	if(swParam.hasKey("util_threads")) { threads = swParam{"util_threads"}.parseInt() }
+	if(swParam.hasKey("util_mem")) { memory = swParam{"util_mem"}.parseInt() }
+	if(swParam.hasKey("tool_module")) { modlist.push(swParam{"tool_module"}) }
+
+	if(modsource.length() > 0) { modload = ". $modsource; " }
+	for(string mod : modlist) { modload += "module load $mod; " }
+	memory = getmem(memory * G, threads)
+	
+	// run start
+	if(! outdir.isDir()) { outdir.mkdir() }
+	if(! logdir.isDir()) { logdir.mkdir() }	
+	if(! tmpdir.isDir()) { tmpdir.mkdir() }
+
+	// println "infile = $infile\noutfile = $outfile\noutfn = $outfn"
+
+	if(outlist <- infile) {
+		println info(modname, "task=run_splitByBin | sm=$sample | run=1")
+		
+		tid = task(outlist <- infile, cpus := threads, mem := memory, \
+			infile.length() > 0) {
+			sys echo "$sample::splitbybin"
+			sys $modload
+			sys echo "Spliting by bin in inputfile target.bed ..." > $logdir/$logfile
+			sys perl $path/$exe -f $infile -o $outfile -b $binsize >> $logdir/$logfile 2>&1
+			sys echo "Printing binned bedfiles into target.bins.list ..." >> $logdir/$logfile
+			sys awk -F"\t" -v tmp=$tmpdir -v f=$outfn '$1!~/^#/{print tmp"/"f"."$1"."$4".bed" }' $outfile | sort | uniq > $outlist 2>> $logdir/$logfile
+			sys echo "... Done!" >> $logdir/$logfile
+			sys sleep $safeSleep
+		}
+
+		tids.push(tid)
+
+		wait tid
+	}
+	else {
+		println info(modname, "task=run_splitByBin | sm=$sample | run=0")
+	}
+
+	out1 := outlist.readLines().head()
+	if(out1 <- outlist) {
+		println info(modname, "task=run_printByBin | sm=$sample | run=1")
+		logfileNew := logfile.swapExt(".log",".print.log")
+		tid = task(out1 <- outlist, cpus := threads, mem := memory) {
+			sys echo "$sample::printbybin"
+			sys $modload
+			sys echo "Printing outputfile target.bins.txt into binned bedfiles in tmpdir ..." > $logdir/$logfileNew
+			sys if [ -e $out1 ]; then rm $tmpdir/$outfn.*.bed; fi 
+			sys awk -F"\t" -v tmp=$tmpdir -v f=$outfn '$1!~/^#/{print $1"\t"$2"\t"$3 > tmp"/"f"."$1"."$4".bed" }' $outfile 2>> $logdir/$logfileNew
+			sys echo "... Done!" >> $logdir/$logfileNew
+			sys sleep $safeSleep
+		}
+
+		tids.push(tid)
+
+	}
+	else {
+		println info(modname, "task=run_printByBin | sm=$sample | run=0")
+	}		
+	// wait tids 
+	// println info(modname, "END | sm=$sample")
+
+	return tids
+}
+

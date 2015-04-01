@@ -1,0 +1,52 @@
+/group/rbao/ExScaliburGMD/example/myProject
+├── archive
+│   └── NA12878trio_archive
+│       ├── alignment
+│       ├── alignment_metrics
+│       ├── configs
+│       ├── project_report
+│       ├── qc_reports
+│       ├── variant_annotation
+│       └── variant_calls
+├── configs
+│   ├── NA12878trio_project
+│   │   ├── LCAexome.archive.yaml
+│   │   ├── NA12878trio.flag.cfg
+│   │   ├── NA12878trio.ivc.cfg
+│   │   ├── NA12878trio.multisample.cfg
+│   │   ├── NA12878trio.reference.cfg
+│   │   ├── NA12878trio.report.in.yaml
+│   │   ├── NA12878trio.report.out.yaml
+│   │   └── NA12878trio.software.cfg
+│   └── NA12878trio_samples
+│       ├── NA12878
+│       │   ├── NA12878.cfg
+│       │   └── NA12878.SRR292250.cfg
+│       ├── NA12891
+│       │   ├── NA12891.cfg
+│       │   └── NA12891.SRR299219.cfg
+│       └── NA12892
+│           ├── NA12892.cfg
+│           └── NA12892.SRR299388.cfg
+├── logs
+│   ├── NA12878trio_multisample
+│   └── NA12878trio_samples
+│       ├── NA12878
+│       ├── NA12891
+│       └── NA12892
+├── NA12878trio.bds.cfg
+├── NA12878trio.metadata.txt
+├── NA12878trio.tree.txt
+├── report
+│   └── NA12878trio_report
+│       ├── aln
+│       ├── annovar
+│       └── fastqc
+└── results
+    ├── NA12878trio_multisample
+    └── NA12878trio_samples
+        ├── NA12878
+        ├── NA12891
+        └── NA12892
+
+32 directories, 17 files

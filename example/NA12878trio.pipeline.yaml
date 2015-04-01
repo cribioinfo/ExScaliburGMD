@@ -1,0 +1,288 @@
+---
+pipeline:
+  flags:
+    aligners:
+      run_bwaaln: 1
+      run_bwamem: 1
+      run_novoalign: 1
+    callers:
+      run_freebayes: 1
+      run_gatkhc: 1
+      run_gatkug: 1
+      run_ivc: 1
+      run_mpileup: 1
+      run_platypus: 1
+    modules:
+      run_alignment: 1
+      run_alignment_refinement: 1
+      run_check_qc: 1
+      run_clip_adaptor: 1
+      run_collect_alignment_metrics: 1
+      run_gatk_bqsr: 1
+      run_gatk_callableloci: 1
+      run_gatk_indel_realn: 1
+      run_generate_exon_covhist: 1
+      run_merge_overlap_mates: 1
+      run_preprocessing: 1
+      run_quality_control: 1
+      run_remove_duplicates: 1
+      run_rmdup_picard: 1
+      run_rmdup_samtools: 0
+      run_target: 1
+      run_variant_annotation: 1
+      run_variant_call: 1
+  ivc:
+    config:
+      binSize: 25000000
+      depthFilterMultiple: 3.0
+      extraIvcArguments: ~
+      indelMaxRefRepeat: -1
+      isSkipDepthFilters: 1
+      isWriteRealignedBam: 0
+      maxInputDepth: 10000
+      minGQX: 30
+      minMapq: 30
+  software:
+    main:
+      adapter_pe: "AGATCGGAAGAGCGGTTCAG,AGATCGGAAGAGCGTCGTGT"
+      adapter_se: AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTA
+      bin_size: 25000000
+      fastq_format: 33
+      genome_assembly: hg19
+      min_base_qual: 20
+      min_depth: 6
+      min_map_qual: 30
+      module_source: /etc/profile.d/modules.sh
+      ploidy: 2
+      qc_check: "QUAL:30:50,NFD:0:10,GC:40:60,N:0:2"
+      report_variants_pass: 1
+      split_by_bin: 1
+      threads: 4
+      variant_call_mode: multi
+    annovar:
+      bin_size: 2500
+      convert2annovar_exe: /data/annovar/convert2annovar.pl
+      db: /data/annovar/humandb
+      genome_assembly: hg19
+      mem: 4
+      # module: annovar/20141112
+      operation: "g,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,r,r"
+      protocol: "refGene,snp138,1000g2014sep_all,1000g2014sep_afr,1000g2014sep_amr,1000g2014sep_eas,1000g2014sep_eur,1000g2014sep_sas,esp6500siv2_all,esp6500siv2_aa,esp6500siv2_ea,exac03,nci60,cg46,cg69,cosmic70,clinvar_20140929,ljb26_all,phastConsElements46way,genomicSuperDups"
+      table_annovar_exe: /data/annovar/table_annovar.pl
+      threads: 1
+    bcftools:
+      exe: bcftools
+      mem: 4
+      module: bcftools/0.1.19
+      threads: 1
+    bedtools:
+      exe: bedtools
+      mem: 4
+      module: bedtools/2.21.0
+      threads: 1
+    bgzip:
+      exe: bgzip
+      module: tabix/0.2.6
+    bwa:
+      aln_per_read: 100
+      barcode_length: 0
+      exe: bwa
+      fastq_format: 33
+      max_SE_hits: 1
+      max_PE_hits: 1
+      max_discor_PE_hits: 1
+      max_mate_rescue: 50
+      max_seed_occur: 500
+      mem: 6
+      min_base_qual: 10
+      module: bwa/0.7.10
+      threads: 4
+    cutadapt:
+      exe: cutadapt
+      mem: 1
+      min_length: 36
+      #module: python/2.7.8-bio
+      threads: 1
+    fastqc:
+      exe: fastqc
+      mem: 4
+      module: fastqc/0.11.2
+      threads: 4
+    freebayes:
+      exe: freebayes
+      max_complex_gap: 30
+      max_iteration: 25
+      max_mismatch: 5
+      mem: 4
+      min_var_frac: 0.20
+      min_var_qsum: 40
+      min_var_read: 2
+      module: freebayes/0.9.13
+      skip_gatk_bqsr: 0
+      skip_gatk_indel_realn: 0
+      threads: 4
+      variant_call_mode: multi
+      xargs: 0
+      xargs_bin_size: 25000000
+    gatk:
+      call_conf: 50
+      dcov: 250
+      emit_conf: 30
+      exe: /software/GenomeAnalysisTK-3.1-1/GenomeAnalysisTK.jar
+      max_callable_depth: 1000
+      max_lowMAPQ: 5
+      max_lowMAPQ_frac: 0.1
+      mem: 4
+      min_callable_depth: 4
+      min_indel_count: 5
+      min_indel_frac: 0.25
+      min_lowMAPQ_depth: 10
+      # module: gatk/3.1.1
+      threads: 1
+      variant_call_mode: multi
+    gvcftools:
+      exe: ${GVCFTOOLS}
+      module: gvcftools/0.16
+    igvtools:
+      exe: /data/software/IGVTools/2.3.32/igvtools.jar
+      # module: igvtools/2.3.32
+    ivc:
+      bin_size: 25000000
+      depth_filter_multiple: 3.0
+      exe: ${IVC}
+      indel_max_ref_repeat: -1
+      max_depth: 10000
+      mem: 4
+      min_gqx: 30
+      module: ivc/1.0.6
+      skip_depth_filter: 1
+      threads: 4
+      variant_call_mode: multi
+      write_realn_bam: 0
+    java:
+      exe: ~
+      module: java/1.7.0
+    mpileup:
+      exe: "samtools mpileup"
+      max_depth: 10000
+      mem: 4
+      min_depth: 2
+      min_indel_read: 5
+      min_var_read: 2
+      module: samtools/0.1.19
+      threads: 4
+      variant_call_mode: multi
+      xargs: 0
+      xargs_bin_size: 25000000
+    novoalign:
+      exe: /data/software/novocraft/3.02.05/novoalign
+      fragment_length: 200
+      fragment_std: 100
+      mem: 8
+      #module: novocraft/3.02.08-free
+      report_repeats: Random
+      softclip: 1
+      stripadaptor: 1
+      threads: 4
+    perl:
+      exe: ~
+      lib_path: ~
+      module: perl/5.18.1
+    picard:
+      exe: ${PICARD}
+      max_records_in_mem: 20000000
+      mem: 4
+      module: picard/1.123
+      threads: 4
+    pigz:
+      exe: pigz
+      mem: 2
+      # module: pigz/2.3.1
+      threads: 4
+    platypus:
+      assemble: 0
+      buffer_size: 500000
+      exe: ${PLATYPUS}
+      filter_dist_mate: 1
+      filter_dup: 1
+      filter_small_insert: 1
+      filter_unmapped_mate: 1
+      max_buffer_read: 25000000
+      max_var_flank: 10
+      max_var_in_window: 8
+      max_var_size: 200
+      mem: 4
+      min_good_qual_base: 20
+      min_posterior: 5
+      min_var_read: 2
+      module: platypus/0.8.1
+      output_ref_call: 0
+      threads: 1
+      variant_call_mode: multi
+    python:
+      exe: ~
+      lib_path: ~
+      module: python/2.7.8-bio
+    samtools:
+      exe: samtools
+      max_mem_per_thread: 1G
+      mem: 1
+      module: samtools/0.1.19
+      threads: 4
+    seqprep:
+      exe: SeqPrep
+      mem: 1
+      min_length: 36
+      module: SeqPrep/b5efabc5f7
+      threads: 1
+    tabix:
+      exe: tabix
+      module: tabix/0.2.6
+    util:
+      check_qc_exe: Check_QC.pl
+      fix_vcf_col_exe: Fix_VcfSampleColTitle.pl
+      fix_vcf_header_exe: Fix_VcfHeader.pl
+      generate_fastqc_html_exe: Generate_FastqcHTML.pl
+      mem: 8
+      # module: gmdutil/1.0.0
+      path: /data/rbao/BDS-ExScaliburGMD/util
+      prepare_reportfiles_exe: Prepare_ReportFiles.pl
+      split_by_bin_exe: Split_Bins.pl
+      split_file_exe: Split_Files.pl
+    vcflib:
+      exe: ${VCFLIB}
+      module: vcflib
+      threads: 1
+    vcfsorter:
+      exe: vcfsorter.pl
+      module: vcfsorter
+      threads: 1
+    vcftools:
+      exe: ${VCFTOOLS}
+      mem: 1
+      module: vcftools/0.1.12a
+      threads: 1
+    vcfutils:
+      exe: vcfutils.pl
+      mem: 4
+      module: vcfutils/0.1.19
+      threads: 1
+    vt:
+      exe: vt
+      module: vt
+      threads: 1
+  references:
+    hg19:
+      chrs: "chr1,chr2,chr3,chr4,chr5,chr6,chr7,chr8,chr9,chr10,chr11,chr12,chr13,chr14,chr15,chr16,chr17,chr18,chr19,chr20,chr21,chr22,chrX,chrY,chrM"
+      dbsnp: /group/references/dbsnp_138.hg19.vcf
+      exon: /group/references/hg19.exons.refGene.bed
+      g1000indel: /group/references/1000G_phase1.indels.hg19.vcf
+      g1000snp: /group/references/1000G_phase1.snps.high_confidence.hg19.vcf
+      genome: /group/references/ucsc.hg19.fasta
+      genomedict: /group/references/ucsc.hg19.dict
+      hapmap: /group/references/hapmap_3.3.hg19.vcf
+      mills: /group/references/Mills_and_1000G_gold_standard.indels.hg19.vcf
+      novoalign_index: /group/references/ucsc.hg19.nix
+      omni: /group/references/1000G_omni2.5.hg19.vcf
+      target: /group/rbao/ExScaliburGMD/example/target/hg19.exons.refGene.bed
+project: NA12878trio

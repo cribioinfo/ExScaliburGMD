@@ -1,0 +1,220 @@
+#!/usr/bin/env bds
+
+
+include "print.bds"
+include "getmem.bds"
+include "checkvcf.bds"
+
+// for IVC, no target region can be specified. It will generate an target.bam in tmpdir and use that as input
+
+string[] ivc(string sample, string chr, string tmpdir, string targetfile, string infile, string outfile, string outdir, string logfile, string logdir, string softwareConfig, string refConfig, string ivcConfig) {
+
+	// initialize
+	string{} swParam = config(softwareConfig)
+	string{} refParam = config(refConfig)
+	string[] modlist
+	string modname = "ExScaliburGMD::ivc"
+	string modsource
+	string modload = ""
+	string ivcExe	
+	string pigzExe
+	string tabixExe
+	string bgzipExe
+	string gvcftoolsExe
+	string vcftoolsExe
+	string vcflibExe
+	string vtExe
+	string vcfsorterExe
+	string samtoolsExe
+	string fixVcfColExe
+	string utilPath
+	int threads = 1
+	int memory = 1
+
+	// println info(modname, "START | sm=$sample")
+
+	string[] tids
+	string[] infiles = infile.split(",")
+	string[] chrs
+	string[] infilesNew
+	string inputString = ""
+	string targetParam = ""
+	string mode
+	string refGenome
+	string refGenomeDict
+	string chrom
+	string target // will be overitten by the opt targetfile
+	string tid
+	string infn = infile.split("/").pop().removeExt(".bam")
+	string outfn = outfile.removeExt(".vcf")	
+	string ivcdir = outdir + "/ivc"
+	string intarget
+	string outtarget
+	int infileTotal
+
+	// assign values
+	if(swParam.hasKey("java_module")) { modlist.push(swParam{"java_module"}) }
+	if(swParam.hasKey("main_module_source")) { modsource = swParam{"main_module_source"} }
+	if(swParam.hasKey("ivc_variant_call_mode")) { mode = swParam{"ivc_variant_call_mode"} }
+	if(swParam.hasKey("ivc_exe")) { ivcExe = swParam{"ivc_exe"} }
+	if(swParam.hasKey("ivc_module")) { modlist.push(swParam{"ivc_module"}) }
+	if(swParam.hasKey("ivc_threads")) { threads = swParam{"ivc_threads"}.parseInt() }
+	if(swParam.hasKey("ivc_mem")) { memory = swParam{"ivc_mem"}.parseInt() }
+	if(swParam.hasKey("pigz_exe")) { pigzExe = swParam{"pigz_exe"} }
+	if(swParam.hasKey("pigz_module")) { modlist.push(swParam{"pigz_module"}) }
+	if(swParam.hasKey("gvcftools_exe")) { gvcftoolsExe = swParam{"gvcftools_exe"} }
+	if(swParam.hasKey("gvcftools_module")) { modlist.push(swParam{"gvcftools_module"}) }
+	if(swParam.hasKey("vcftools_exe")) { vcftoolsExe = swParam{"vcftools_exe"} }
+	if(swParam.hasKey("vcftools_module")) { modlist.push(swParam{"vcftools_module"}) }
+	if(swParam.hasKey("vcflib_exe")) { vcflibExe = swParam{"vcflib_exe"} }
+	if(swParam.hasKey("vcflib_module")) { modlist.push(swParam{"vcflib_module"}) }
+	if(swParam.hasKey("vt_exe")) { vtExe = swParam{"vt_exe"} }
+	if(swParam.hasKey("vt_module")) { modlist.push(swParam{"vt_module"}) }
+	if(swParam.hasKey("vcfsorter_exe")) { vcfsorterExe = swParam{"vcfsorter_exe"} }
+	if(swParam.hasKey("vcfsorter_module")) { modlist.push(swParam{"vcfsorter_module"}) }
+	if(swParam.hasKey("tabix_exe")) { tabixExe = swParam{"tabix_exe"} }
+	if(swParam.hasKey("bgzip_exe")) { bgzipExe = swParam{"bgzip_exe"} }
+	if(swParam.hasKey("tabix_module")) { modlist.push(swParam{"tabix_module"}) }
+	if(swParam.hasKey("samtools_module")) { modlist.push(swParam{"samtools_module"}) }
+	if(swParam.hasKey("samtools_exe")) { samtoolsExe = swParam{"samtools_exe"} }
+	if(refParam.hasKey("hg19_genome")) { refGenome = refParam{"hg19_genome"} }
+	if(refParam.hasKey("hg19_chrs")) { chrs = refParam{"hg19_chrs"}.split(",") }
+	if(refParam.hasKey("hg19_target")) { target = refParam{"hg19_target"} }
+	if(refParam.hasKey("hg19_genomedict")) { refGenomeDict = refParam{"hg19_genomedict"} }
+
+	if(swParam.hasKey("util_fix_vcf_col_exe")) { fixVcfColExe = swParam{"util_fix_vcf_col_exe"} }
+	if(swParam.hasKey("util_path")) { utilPath = swParam{"util_path"} }
+
+	if(modsource.length() > 0) { modload = ". $modsource; " }
+	for(string mod : modlist) { modload += "module load $mod; " }
+	memory = getmem(memory * G, threads)
+
+	infileTotal = infiles.size()
+	if(targetfile.length() > 0) { target = targetfile }
+	
+	// prepare target input
+	if(chrom.length() > 0) { targetParam += " -L $chrom" }
+	if(target.length() > 0) { targetParam += " -L $target" }
+
+	// run start
+	if(! outdir.isDir()) { outdir.mkdir() }
+	if(! logdir.isDir()) { logdir.mkdir() }	
+	if(! tmpdir.isDir()) { tmpdir.mkdir() }	
+
+	// run variant calling
+	if(infileTotal == 1) {
+		// run IVC on each sample to generate single sample vcf file
+		// println "ivc: Run IVC on each sample to generate single sample vcf file"
+		
+		if(outfile + ".gz.tbi" <- infile) {
+			println info(modname, " task=run_varCall | sm=$sample | run=1")
+
+			if(outfile <- infile) { 
+				println info(modname, " task=run_IVC | sm=$sample | run=1")
+
+				tid = dep(outfile <- infile, cpus := threads, mem := memory, \
+					infile.length() > 0) {
+					sys echo "$sample::ivc"
+					sys $modload
+					// remove output directory (can't exist...)
+					sys if [ -e "$ivcdir" ]; then rm -r "$ivcdir"; fi
+					// run ivc
+					sys perl $ivcExe --bam=$infile --ref=$refGenome --config=$ivcConfig --output-dir=$ivcdir >& $logdir/$logfile 
+					sys cd $ivcdir
+					sys make -j $threads >> $logdir/$logfile 2>&1
+					sys $pigzExe -dc $ivcdir/results/$infn.genome.vcf.gz | $gvcftoolsExe/extract_variants > $outfile 2>> $logdir/$logfile
+				
+				}
+
+				tids.push(tid)	
+			}
+			else {
+				println info(modname, " task=run_IVC | sm=$sample | run=0")
+			}
+
+			if(outfile + ".gz.tbi" <- outfile) { 
+				println info(modname, " task=run_zipVcf | sm=$sample | run=1")
+
+				tid = dep(outfile + ".gz.tbi" <- outfile, cpus := threads, mem := memory) {
+					sys echo "$sample::ivc::bgzip_tabix"
+					sys $modload
+					sys $bgzipExe -fc $outfile > $outfile.gz 2> $logdir/$logfile
+					sys $tabixExe -p vcf -f $outfile.gz 2>> $logdir/$logfile
+
+				}
+
+				tids.push(tid)	
+			}
+			else {
+				println info(modname, " task=run_zipVcf | sm=$sample | run=0")
+			}
+		}
+		else {
+			println info(modname, " task=run_varCall | sm=$sample | run=0")
+		}
+
+		goal(outfile + ".gz.tbi")
+	}
+	else if(infileTotal >= 2) { 
+		// prepare input string 
+		inputString = ""
+		for(string in : infiles) { 
+			inputString += " $in.gz"
+			infilesNew.push(in + ".gz") 
+		}
+		// printArray(infilesNew)
+
+		// Merge sample.vcf files into one multi-sample vcf
+		// println "ivc: First check whether there is any truncated sample.vcf file..."
+
+		int flag = 0
+
+		// only check when this was run genome-wide
+		if(target.length() <= 0) {
+			flag = CheckVCF(infiles)
+			if(flag > 0) {
+				error info(modname, " task=run_CheckVCF | sm=$sample | CheckVCF failed. IVC vcf files are truncated. Program terminated!\n")
+			}
+		}
+		if(flag == 0) {
+			println info(modname, " task=run_CheckVCF | sm=$sample | CheckVCF passed. Continue with vcf merging")
+			
+			// merge and reorder merged vcf
+			if(outfile <- infilesNew) { 
+				println info(modname, " task=run_mergeVcf | sm=$sample | run=1")
+
+				tid = task(outfile <- infilesNew, cpus := threads, mem := memory, \
+				inputString != "") {
+					sys echo "$sample:ivc::mergeVcf"
+					sys $modload
+					sys echo "Merge variants ..." > $logdir/$logfile
+					sys $vcftoolsExe/vcf-merge $inputString > $outfn.raw.vcf 2>> $logdir/$logfile					
+					sys sleep 1
+					sys echo "Fixing up sample column title ..." >> $logdir/$logfile
+					sys perl $utilPath/$fixVcfColExe -vcf $outfn.raw.vcf -o $outdir >> $logdir/$logfile 2>&1
+					sys sleep 1
+					sys echo "Normalize variants ..." >> $logdir/$logfile
+					sys cat $outfn.raw.fixed.vcf | $vcflibExe/vcfallelicprimitives --keep-info --keep-geno 2>> $logdir/$logfile | $vtExe normalize -r $refGenome - > $outfn.raw.fixed.norm.vcf 2>> $logdir/$logfile
+					sys sleep 1
+					sys echo "Reordering chrom to be consistent with genome.dict ..." >> $logdir/$logfile
+					sys $vcfsorterExe $refGenomeDict $outfn.raw.fixed.norm.vcf > $outfn.raw.fixed.norm.reordered.vcf 2>> $logdir/$logfile
+					sys if [ -e $outfile ]; then mv $outfile $outfile.bak; fi 
+					sys mv $outfn.raw.fixed.norm.reordered.vcf $outfile >> $logdir/$logfile 2>&1
+					sys echo "... Done!" >> $logdir/$logfile
+				}
+
+				tids.push(tid)
+			}
+			else {
+				println info(modname, " task=run_mergeVcf | sm=$sample | run=0")
+			}
+		}
+
+	}
+
+
+	// println info(modname, " END | sm=$sample")
+
+	return tids
+}
+

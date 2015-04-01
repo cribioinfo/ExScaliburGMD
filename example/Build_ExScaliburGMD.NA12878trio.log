@@ -1,0 +1,48 @@
+
+--------------------------------------------------------------------------------
+Program            : Build_ExScaliburGMD.pl
+Version            : 0.5.0
+Date/Time          : Wed Apr  1 00:25:51 2015
+Current Directory  : /group/rbao/ExScaliburGMD/example
+
+Copyright (c) 2015 Center for Research Informatics, The University of Chicago
+For support and documentation go to: http://exscalibur.cri.uchicago.edu
+--------------------------------------------------------------------------------
+
+[COMMANDS]
+Build_ExScaliburGMD.pl --project NA12878trio --metadata NA12878trio.metadata.txt --config NA12878trio.pipeline.yaml --projdir /group/rbao/ExScaliburGMD/example/myProject --threads 2 --mapq 30 --force --split --tree tree --cluster --sge --log --retry 0 --bdscfg 
+
+[INFO]
+Project Title                     = [ NA12878trio ]
+Project Directory                 = [ /group/rbao/ExScaliburGMD/example/myProject ]
+Sample Metadata Table             = [ NA12878trio.metadata.txt ]
+Pipeline Configuration File       = [ NA12878trio.pipeline.yaml ]
+Number of Threads                 = [ 2 ]
+Minumum Mapping Quality           = [ 30 ]
+Force All Samples                 = [ ON ]
+Scatter-Gather Mode               = [ ON ]
+Platform                          = [ cluster ]
+Scheduler                         = [ sge ]
+Retry                             = [ 0 ]
+BigDataScript Configuration       = [  ]
+Pipeline Master Submission Script = [ Submit_ExScaliburGMD.NA12878trio.sh ]
+Log Mode                          = [ ON ]
+
+[PROGRESS]
+[ 03-01-2015_00:25:51 ] Read sample information from "NA12878trio.metadata.txt"
+Readgroup Total = 3
+Readgroup Skipped = 0
+Sample Kept = 3
+[ 03-01-2015_00:25:51 ] Read pipeline configuration from "NA12878trio.pipeline.yaml"
+[ 03-01-2015_00:25:51 ] Build project directory
+[ 03-01-2015_00:25:51 ] Build project-level config files
+[ 03-01-2015_00:25:51 ] Build sample-level config files
+[ 03-01-2015_00:25:51 ] Build project report yaml files
+[ 03-01-2015_00:25:51 ] Build project archive yaml files
+[ 03-01-2015_00:25:51 ] Build pipeline submission job script "Submit_ExScaliburGMD.NA12878trio.sh"
+[ 03-01-2015_00:25:51 ] Copy metadata table to project directory
+[ 03-01-2015_00:25:51 ] Write project directory tree structure into "NA12878trio.tree.txt"
+[ 03-01-2015_00:25:51 ] Output files written into project directory
+
+Program finished! Elapsed time: 0 seconds.
+

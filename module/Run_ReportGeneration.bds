@@ -1,0 +1,50 @@
+#!/usr/bin/env bds
+
+void Run_ReportGeneration(string project, string projdir, string multiConfig, string flagConfig, string refConfig, string softwareConfig){
+
+	println info("ExScaliburGMD::07_Run_ReportGeneration", "START | proj=$project")
+
+
+	//------------- INCLUDE -------------//
+
+	include "../lib/print.bds"
+	//include "../lib/header.bds"
+	include "../lib/report.bds"
+
+	//sys source "config/module.rc"
+
+	//------------- MAIN -------------//
+
+	// initialize
+	string{} multiParam = config(multiConfig)
+	string{} flagParam = config(flagConfig)
+	string{} refParam = config(refConfig)
+	string[] tids
+	string[] tid
+	string reportdir
+	string outdir
+	string logdir
+	string logfile
+	string infile
+	string outfile
+
+	// assign values
+	if(multiParam.hasKey("report_dir")) { reportdir = multiParam{"report_dir"} }
+	if(multiParam.hasKey("report_log_dir")) { logdir = multiParam{"report_log_dir"} }
+	if(multiParam.hasKey("report_in_yaml")) { infile = multiParam{"report_in_yaml"} }
+	if(multiParam.hasKey("report_out_yaml")) { outfile = multiParam{"report_out_yaml"} }
+
+	if(! reportdir.exists()) { reportdir.mkdir() }
+	outdir = reportdir
+	logfile = project + ".report.log"
+
+	// run start 	
+	tid = report(project, infile, outfile, outdir, logfile, logdir, softwareConfig) 
+
+	wait 
+
+	// run end
+	println info("ExScaliburGMD::07_Run_ReportGeneration", "END | proj=$project")
+
+}
+

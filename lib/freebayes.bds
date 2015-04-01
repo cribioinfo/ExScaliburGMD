@@ -1,0 +1,191 @@
+#!/usr/bin/env bds
+
+
+include "print.bds"
+include "getmem.bds"
+
+string[] freebayes(string sample, string chr, string tmpdir, string targetfile, string infile, string outfile, string outdir, string logfile, string logdir, string softwareConfig, string refConfig) {
+
+	// initialize
+	string{} swParam = config(softwareConfig)
+	string{} refParam = config(refConfig)
+	string[] modlist
+	string modname = "ExScaliburGMD::freebayes"
+	string modsource
+	string modload = ""
+	string freebayesExe
+	string vcflibExe
+	string vtExe
+	string vcfsorterExe
+	int threads = 1
+	int memory = 1
+
+	// println info(modname, "START | sm=$sample")
+
+	string outfn = outfile.split("/").pop().removeExt(".vcf")
+	string binlist = outfile.replace(".vcf",".bins.list")
+
+	string[] tids
+	string[] infiles = infile.split(",")
+	string[] chrs
+	string mode
+	string targetParam = ""
+	string inputString = ""
+	string refGenome
+	string refGenomeDict
+	string chrom
+	string target // will be overitten by the opt targetfile
+	string tid
+	int infileTotal
+	int minMapQ
+	int minBaseQ
+	int minVarReadCnt
+	int maxMismatch
+	int minVarQsum
+	int maxComplexGap
+	int maxInteration
+	int ploidy
+	int bin
+	int xargs = 0
+	real minVarReadFrac
+
+	// assign values
+	if(swParam.hasKey("java_module")) { modlist.push(swParam{"java_module"}) }
+	if(swParam.hasKey("main_module_source")) { modsource = swParam{"main_module_source"} }
+	if(swParam.hasKey("main_min_base_qual")) { minBaseQ = swParam{"main_min_base_qual"}.parseInt() }
+	if(swParam.hasKey("main_min_map_qual")) { minMapQ = swParam{"main_min_map_qual"}.parseInt() }
+	if(swParam.hasKey("main_ploidy")) { ploidy = swParam{"main_ploidy"}.parseInt() }
+	if(swParam.hasKey("freebayes_exe")) { freebayesExe = swParam{"freebayes_exe"} }
+	if(swParam.hasKey("freebayes_module")) { modlist.push(swParam{"freebayes_module"}) }
+	if(swParam.hasKey("freebayes_threads")) { threads = swParam{"freebayes_threads"}.parseInt() }
+	if(swParam.hasKey("freebayes_mem")) { memory = swParam{"freebayes_mem"}.parseInt() }
+	if(swParam.hasKey("freebayes_min_var_read")) { minVarReadCnt = swParam{"freebayes_min_var_read"}.parseInt() }
+	if(swParam.hasKey("freebayes_min_var_frac")) { minVarReadFrac = swParam{"freebayes_min_var_frac"}.parseReal() }
+	if(swParam.hasKey("freebayes_max_mismatch")) { maxMismatch = swParam{"freebayes_max_mismatch"}.parseInt() }
+	if(swParam.hasKey("freebayes_min_var_qsum")) { minVarQsum = swParam{"freebayes_min_var_qsum"}.parseInt() }
+	if(swParam.hasKey("freebayes_max_complex_gap")) { maxComplexGap = swParam{"freebayes_max_complex_gap"}.parseInt() }
+	if(swParam.hasKey("freebayes_max_iteration")) { maxInteration = swParam{"freebayes_max_iteration"}.parseInt() }
+	if(swParam.hasKey("freebayes_xargs_bin_size")) { bin = swParam{"freebayes_xargs_bin_size"}.parseInt() }
+	if(swParam.hasKey("freebayes_variant_call_mode")) { mode = swParam{"freebayes_variant_call_mode"} }
+	if(swParam.hasKey("freebayes_xargs")) { xargs = swParam{"freebayes_xargs"}.parseInt() }
+	if(swParam.hasKey("vcflib_exe")) { vcflibExe = swParam{"vcflib_exe"} }
+	if(swParam.hasKey("vcflib_module")) { modlist.push(swParam{"vcflib_module"}) }
+	if(swParam.hasKey("vt_exe")) { vtExe = swParam{"vt_exe"} }
+	if(swParam.hasKey("vt_module")) { modlist.push(swParam{"vt_module"}) }
+	if(swParam.hasKey("vcfsorter_exe")) { vcfsorterExe = swParam{"vcfsorter_exe"} }
+	if(swParam.hasKey("vcfsorter_module")) { modlist.push(swParam{"vcfsorter_module"}) }
+	if(refParam.hasKey("hg19_genome")) { refGenome = refParam{"hg19_genome"} }
+	if(refParam.hasKey("hg19_chrs")) { chrs = refParam{"hg19_chrs"}.split(",") }
+	if(refParam.hasKey("hg19_target")) { target = refParam{"hg19_target"} }
+	if(refParam.hasKey("hg19_genomedict")) { refGenomeDict = refParam{"hg19_genomedict"} }
+
+	if(modsource.length() > 0) { modload = ". $modsource; " }
+	for(string mod : modlist) { modload += "module load $mod; " }
+	memory = getmem(memory * G, threads)
+
+	infileTotal = infiles.size()
+	if(targetfile.length() > 0) { target = targetfile }
+
+	// prepare input string
+	for(string in : infiles) {
+		inputString += " -b $in"; 
+	}
+
+	// prepare target input
+	if(chrom.length() > 0) { targetParam += " -r $chrom" }
+	if(target.length() > 0) { targetParam += " -t $target" }
+
+	// run start
+	if(! outdir.isDir()) { outdir.mkdir() }
+	if(! logdir.isDir()) { logdir.mkdir() }	
+	if(! tmpdir.isDir()) { tmpdir.mkdir() }	
+
+	if(outfile <- infiles) { 
+		println info(modname, " task=run_freebayes | proj=$sample | run=1")
+
+		if(xargs == 0) {
+			outfn = outdir + "/" + outfn
+
+			tid = task(outfile <- infiles, cpus := 1, mem := memory, \
+				infiles.size() != 0) {
+				sys echo "$sample::freebayes"
+				sys $modload
+				sys echo "Running freebayes ..." > $logdir/$logfile
+				sys $freebayesExe $targetParam -v $outfn.raw.vcf -f $refGenome -m $minMapQ -q $minBaseQ --mismatch-base-quality-threshold $minMapQ --read-mismatch-limit $maxMismatch --min-alternate-count $minVarReadCnt --min-alternate-fraction $minVarReadFrac --min-alternate-qsum $minVarQsum --max-complex-gap $maxComplexGap --site-selection-max-iterations $maxInteration --ploidy $ploidy --use-mapping-quality --exclude-unobserved-genotypes --genotype-qualities $inputString >> $logdir/$logfile 2>&1
+				sys sleep 1
+				sys echo "Normalize variants ..." >> $logdir/$logfile
+				sys cat $outfn.raw.vcf | $vcflibExe/vcfallelicprimitives --keep-info --keep-geno 2>> $logdir/$logfile | $vtExe normalize -r $refGenome - > $outfn.norm.vcf 2>> $logdir/$logfile
+				sys sleep 1
+				sys echo "Deleting lines where QUAL<0 ..." >> $logdir/$logfile
+				sys awk -F"\t" '$1~/^#/ || $6>=0' $outfn.norm.vcf > $outfn.norm.exQUALneg.vcf 2>> $logdir/$logfile
+				sys sleep 1
+				sys echo "Reordering chrom to be consistent with genome.dict ..." >> $logdir/$logfile
+				sys if [ -e $outfile ]; then mv $outfile $outfile.bak; fi 
+				sys $vcfsorterExe $refGenomeDict $outfn.norm.exQUALneg.vcf > $outfile 2>> $logdir/$logfile
+				sys echo "... Done!" >> $logdir/$logfile
+			}
+
+			tids.push(tid)	
+		}
+		else if(xargs == 1) { 
+			//run freebayes in parallel
+			tid = task(outfile + ".header" <- infiles, cpus := threads, mem := memory, \
+			infiles.size() != 0) {
+				sys echo "$sample::freebayesPara"
+				/* 
+				note that if you use freebayes/0.9.15, you may receive this error: terminate called after throwing an instance of 'std::out_of_range'
+				what():  basic_string::substr
+				Aborted (core dumped)
+				and if you use freebayes/0.9.20, you may receive this error
+				freebayes: freebayes.cpp:714: int main(int, char**): Assertion `m != __null' failed.
+				Aborted (core dumped)
+				freebayes/0.9.13 seems more stable....
+				*/
+				sys $modload
+				//start freebayes on bins
+				sys echo "Running freebayes in parallel ..." > $logdir/$logfile
+				sys cat $binlist | xargs -I {} -n 1 -P $threads sh -c "$freebayesExe -r {} -v $tmpdir/$outfn.{}.vcf -f $refGenome -m $minMapQ -q $minBaseQ --mismatch-base-quality-threshold $minMapQ --read-mismatch-limit $maxMismatch --min-alternate-count $minVarReadCnt --min-alternate-fraction $minVarReadFrac --min-alternate-qsum $minVarQsum --max-complex-gap $maxComplexGap --site-selection-max-iterations $maxInteration --ploidy $ploidy --use-mapping-quality --exclude-unobserved-genotypes --genotype-qualities $inputString >> $logdir/$logfile 2>&1"
+				//cat output files
+				//cat output files
+				sys grep "^#" $tmpdir/$outfn.`head -1 $binlist`.vcf > $outfile.header
+				// for loop does not work within sys... variable $string can't be masked
+				//sys for string in `cat $binlist`; do grep -v "^#" $tmpdir/$outfn.\$string.vcf >> $outfile 2>> $logdir/$logfile; done
+
+			}
+			// this wait is required!!! otherwise the next step will start without waiting...WHY?
+			wait tid
+			if(outfile <- outfile + ".header") {
+				sys echo "Merge variants ..." >> $logdir/$logfile
+				bins := binlist.readLines()
+				sys cat $outfile.header > $outdir/$outfn.raw.vcf 2>> $logdir/$logfile
+				for(string bin : bins) {
+					//sys echo $tmpdir/$outfn.$bin.vcf
+					// note that grep -v "^#" does NOT work within sys...
+					sys awk '$1!~/^#/' $tmpdir/$outfn.$bin.vcf >> $outdir/$outfn.raw.vcf 2>> $logdir/$logfile
+				} 
+
+				outfn = outdir + "/" + outfn
+				sys echo "Normalize variants ..." >> $logdir/$logfile
+				sys cat $outfn.raw.vcf | $vcflibExe/vcfallelicprimitives --keep-info --keep-geno 2>> $logdir/$logfile | $vtExe normalize -r $refGenome - > $outfn.norm.vcf 2>> $logdir/$logfile
+				sys sleep 1
+				sys echo "Deleting lines where QUAL<0 ..." >> $logdir/$logfile
+				sys awk -F"\t" '$1~/^#/ || $6>=0' $outfn.norm.vcf > $outfn.norm.exQUALneg.vcf 2>> $logdir/$logfile
+				sys sleep 1
+				sys echo "Reordering chrom to be consistent with genome.dict ..." >> $logdir/$logfile
+				sys $vcfsorterExe $refGenomeDict $outfn.norm.exQUALneg.vcf > $outfile 2>> $logdir/$logfile
+				sys echo "... Done!" >> $logdir/$logfile
+			}
+
+			tids.push(tid)	
+		}
+	}
+	else {
+		println info(modname, " task=run_freebayes | proj=$sample | run=0")
+
+	}
+
+	// println info(modname, "END | sm=$sample")
+
+
+	return tids
+}

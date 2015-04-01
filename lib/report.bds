@@ -1,0 +1,75 @@
+#!/usr/bin/env bds
+
+
+// run gatk program 
+
+include "print.bds"
+include "getmem.bds"
+
+string[] report(string project, string infile, string outfile, string outdir, string logfile, string logdir, string softwareConfig){
+
+	// initialize
+	string{} swParam = config(softwareConfig)
+	string[] modlist
+	string modname = "ExScaliburGMD::report"
+	string modsource
+	string modload = ""
+	string exe
+	string path
+	string taskComplete = outdir + "/task.complete"
+	string passParam = ""
+	int pass = 0
+	int threads = 1
+	int memory = 1 
+
+	// note the recommended mem is 4G ( to summarize all variant sets), otherwise sge will kill the program without warning
+	// println info(modname, "START | proj=$project")
+
+	string[] tids
+	string tid
+
+	// assign values
+	if(swParam.hasKey("main_module_source")) { modsource = swParam{"main_module_source"} }
+	if(swParam.hasKey("util_path")) { path = swParam{"util_path"} }
+	if(swParam.hasKey("util_threads")) { threads = swParam{"util_threads"}.parseInt() }
+	if(swParam.hasKey("util_mem")) { memory = swParam{"util_mem"}.parseInt() }
+	if(swParam.hasKey("util_module")) { modlist.push(swParam{"util_module"}) }
+	if(swParam.hasKey("util_prepare_reportfiles_exe")) { exe = swParam{"util_prepare_reportfiles_exe"} }
+	if(swParam.hasKey("main_report_variants_pass")) { pass = swParam{"main_report_variants_pass"}.parseInt() }
+
+	if(modsource.length() > 0) { modload = ". $modsource; " }
+	for(string mod : modlist) { modload += "module load $mod; " }
+	memory = getmem(memory * G, threads)
+
+	if(pass == 1) { passParam = " --pass" }
+
+	// run start
+	if(! outdir.isDir()) { outdir.mkdir() }
+	if(! logdir.isDir()) { logdir.mkdir() }	
+
+	// if(taskComplete <- infile) { 
+		println info(modname, "task=run_report | proj=$project | run=1")
+
+		tid = task(cpus := threads, mem := memory, \
+			infile.length() > 0, outfile.length() > 0) {
+			sys echo "$project::report"
+			sys $modload
+			sys sleep 1
+			sys perl $path/$exe --in $infile --out $outfile --dir $outdir $passParam >& $logdir/$logfile
+			sys sleep 1
+			sys cp -p $outfile $outdir 2>> $logdir/$logfile
+			sys echo -e `date`"\nOutput written into directory $outdir" > $taskComplete
+			sys sleep $safeSleep
+		}
+
+		tids.push(tid)	
+	// }
+	// else {
+	// 	println info(modname, "task=run_report | proj=$project | run=0")
+	// }
+
+	// println info(modname, "END | proj=$project")
+
+	return tids
+}
+

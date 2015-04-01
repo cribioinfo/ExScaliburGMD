@@ -1,0 +1,164 @@
+#!/usr/bin/env bds
+
+
+include "print.bds"
+include "getmem.bds"
+include "checkvcf.bds"
+
+string[] platypus(string sample, string chr, string tmpdir, string targetfile, string infile, string outfile, string outdir, string logfile, string logdir, string softwareConfig, string refConfig) {
+
+	// initialize
+	string{} swParam = config(softwareConfig)
+	string{} refParam = config(refConfig)
+	string[] modlist
+	string modname = "ExScaliburGMD::platypus"
+	string modsource
+	string modload = ""
+	string platypusExe
+	string vcflibExe
+	string vtExe
+	string vcfsorterExe
+	int threads = 1
+	int memory = 1
+
+	// println info(modname, "START | sm=$sample")
+
+	string outfn = outfile.split("/").pop().removeExt(".vcf")
+
+	string[] tids
+	string[] infiles = infile.split(",")
+	string[] chrs
+	string mode
+	string targetParam = ""
+	string intervalString = ""
+	string refGenome
+	string refGenomeDict
+	string chrom
+	string target // will be overitten by the opt targetfile
+	string tid
+	int flag = 0
+	int infileTotal
+	int minMapQ = 0
+	int minBaseQ = 0
+	int ploidy
+	int assemble = 0
+	int bufferSize = 100000
+	int fltDup = 1
+	int fltSmallInsert = 1
+	int fltUnmappedMate = 1
+	int fltDistMate = 1
+	int maxBufferRead = 5000000
+	int minVarFlank = 10
+	int maxVarSize = 50
+	int maxVarInWindow = 8 // window size is typically 100 bp
+	int minGoodQualBase = 20
+	int minPosterior = 5
+	int minVarRead = 2
+	int outputRefCall = 0 
+
+
+	// assign values
+	if(swParam.hasKey("java_module")) { modlist.push(swParam{"java_module"}) }
+	if(swParam.hasKey("main_module_source")) { modsource = swParam{"main_module_source"} }
+	if(swParam.hasKey("main_min_base_qual")) { minBaseQ = swParam{"main_min_base_qual"}.parseInt() }
+	if(swParam.hasKey("main_min_map_qual")) { minMapQ = swParam{"main_min_map_qual"}.parseInt() }
+	if(swParam.hasKey("main_ploidy")) { ploidy = swParam{"main_ploidy"}.parseInt() }
+	if(swParam.hasKey("platypus_exe")) { platypusExe = swParam{"platypus_exe"} }
+	if(swParam.hasKey("platypus_module")) { modlist.push(swParam{"platypus_module"}) }
+	if(swParam.hasKey("platypus_threads")) { threads = swParam{"platypus_threads"}.parseInt() }
+	if(swParam.hasKey("platypus_mem")) { memory = swParam{"platypus_mem"}.parseInt() }
+	if(swParam.hasKey("platypus_assemble")) { assemble = swParam{"platypus_assemble"}.parseInt() }
+	if(swParam.hasKey("platypus_buffer_size")) { bufferSize = swParam{"platypus_buffer_size"}.parseInt() }
+	if(swParam.hasKey("platypus_filter_dup")) { fltDup = swParam{"platypus_filter_dup"}.parseInt() }
+	if(swParam.hasKey("platypus_filter_small_insert")) { fltSmallInsert = swParam{"platypus_filter_small_insert"}.parseInt() }
+	if(swParam.hasKey("platypus_filter_unmapped_mate")) { fltUnmappedMate = swParam{"platypus_filter_unmapped_mate"}.parseInt() }
+	if(swParam.hasKey("platypus_filter_dist_mate")) { fltDistMate = swParam{"platypus_filter_dist_mate"}.parseInt() }
+	if(swParam.hasKey("platypus_max_buffer_read")) { maxBufferRead = swParam{"platypus_max_buffer_read"}.parseInt() }
+	if(swParam.hasKey("platypus_max_var_flank")) { minVarFlank = swParam{"platypus_max_var_flank"}.parseInt() }
+	if(swParam.hasKey("platypus_max_var_size")) { maxVarSize = swParam{"platypus_max_var_size"}.parseInt() }
+	if(swParam.hasKey("platypus_max_var_in_window")) { maxVarInWindow = swParam{"platypus_max_var_in_window"}.parseInt() }
+	if(swParam.hasKey("platypus_min_good_qual_base")) { minGoodQualBase = swParam{"platypus_min_good_qual_base"}.parseInt() }
+	if(swParam.hasKey("platypus_min_posterior")) { minPosterior = swParam{"platypus_min_posterior"}.parseInt() }
+	if(swParam.hasKey("platypus_min_var_read")) { minVarRead = swParam{"platypus_min_var_read"}.parseInt() }
+	if(swParam.hasKey("platypus_output_ref_call")) { outputRefCall = swParam{"platypus_output_ref_call"}.parseInt() }
+	if(swParam.hasKey("vcflib_exe")) { vcflibExe = swParam{"vcflib_exe"} }
+	if(swParam.hasKey("vcflib_module")) { modlist.push(swParam{"vcflib_module"}) }
+	if(swParam.hasKey("vt_exe")) { vtExe = swParam{"vt_exe"} }
+	if(swParam.hasKey("vt_module")) { modlist.push(swParam{"vt_module"}) }
+	if(swParam.hasKey("vcfsorter_exe")) { vcfsorterExe = swParam{"vcfsorter_exe"} }
+	if(swParam.hasKey("vcfsorter_module")) { modlist.push(swParam{"vcfsorter_module"}) }
+	if(refParam.hasKey("hg19_genome")) { refGenome = refParam{"hg19_genome"} }
+	if(refParam.hasKey("hg19_chrs")) { chrs = refParam{"hg19_chrs"}.split(",") }
+	if(refParam.hasKey("hg19_target")) { target = refParam{"hg19_target"} }
+	if(refParam.hasKey("hg19_genomedict")) { refGenomeDict = refParam{"hg19_genomedict"} }
+
+	if(modsource.length() > 0) { modload = ". $modsource; " }
+	for(string mod : modlist) { modload += "module load $mod; " }
+	memory = getmem(memory * G, threads)
+
+	infileTotal = infiles.size()
+	if(targetfile.length() > 0) { target = targetfile }
+
+	// prepare target input
+	// if(chrom.length() > 0) { targetParam += " --regions $chrom" }
+	if(target.length() > 0) { targetParam += " --regions $target" }
+
+	// run start
+	if(! outdir.isDir()) { outdir.mkdir() }
+	if(! logdir.isDir()) { logdir.mkdir() }	
+	if(! tmpdir.isDir()) { tmpdir.mkdir() }	
+
+	if(outfile <- infiles) { 
+		println info(modname, " task=run_platypus | proj=$sample | run=1")
+
+		outfn = outdir + "/" + outfn
+		interval := target.swapExt("bed","interval")
+		logfileNew := logfile.swapExt("log","interval.log")
+
+		// first create an interval file (chrX:1000-100000)
+		tid = task(interval <- target, cpus := 1, mem := memory, \
+			target.length() > 0) {
+			sys echo "$sample::platypus::interval"
+			sys $modload
+			sys awk '{print $1":"$2"-"$3}' $target > $interval 2> $logdir/$logfileNew
+		}
+
+		wait tid 
+		tids.push(tid)	
+
+		// Note that although Platypus manual says --regions=intervalString and --regions=intervalFile 
+		// both work, I tested both and the latter does NOT work. Only works with intervalString.
+		intervalString = interval.readLines().join(",")
+
+		// Note that platypus will run without error even though --region was not correctly set.
+		// and it will generate a vcf with no variants detected (but the outfile will be printed!!)
+
+		// then call variants
+		tid = task(outfile <- infiles, cpus := threads, mem := memory, \
+			infiles.size() != 0) {		
+			sys echo "$sample::platypus"
+			sys $modload
+			sys echo "Running platypus ..." > $logdir/$logfile
+			sys $platypusExe callVariants --output=$outfn.raw.vcf --refFile=$refGenome --regions=$intervalString --bamFiles=$infile --bufferSize=$bufferSize --minReads=$minVarRead --maxReads=$maxBufferRead --maxVariants=$maxVarInWindow --nCPU=$threads --minPosterior=$minPosterior --maxSize=$maxVarSize --minFlank=$minVarFlank --minMapQual=$minMapQ --minBaseQual=$minBaseQ --minGoodQualBases=$minGoodQualBase --filterDuplicates=$fltDup --filterReadsWithUnmappedMates=$fltUnmappedMate --filterReadsWithDistantMates=$fltDistMate --filterReadPairsWithSmallInserts=$fltSmallInsert --assemble=$assemble --outputRefCalls=$outputRefCall >> $logdir/$logfile 2>&1
+			sys sleep 1
+			sys echo "Normalize variants ..." >> $logdir/$logfile
+			sys cat $outfn.raw.vcf | $vcflibExe/vcfallelicprimitives --keep-info --keep-geno 2>> $logdir/$logfile | $vtExe normalize -r $refGenome - > $outfn.norm.vcf 2>> $logdir/$logfile
+			sys sleep 1
+			sys echo "Reordering chrom to be consistent with genome.dict ..." >> $logdir/$logfile
+			sys if [ -e $outfile ]; then mv $outfile $outfile.bak; fi 
+			sys $vcfsorterExe $refGenomeDict $outfn.norm.vcf > $outfile 2>> $logdir/$logfile
+			sys echo "... Done!" >> $logdir/$logfile
+		}
+
+		tids.push(tid)	
+	}
+	else {
+		println info(modname, " task=run_platypus | proj=$sample | run=0")
+
+	}
+
+	// println info(modname, "END | sm=$sample")
+
+
+	return tids
+}

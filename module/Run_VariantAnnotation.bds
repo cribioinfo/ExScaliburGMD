@@ -1,0 +1,52 @@
+#!/usr/bin/env bds
+
+void Run_VariantAnnotation(string project, string aligner, string caller, string projdir, string multiConfig, string flagConfig, string refConfig, string softwareConfig) {
+
+	println info("ExScaliburGMD::06_Run_VariantAnnotation", "START | proj=$project | aln=$aligner | clr=$caller")
+
+
+	//------------- INCLUDE -------------//
+
+	include "../lib/print.bds"
+	//include "../lib/header.bds"
+	include "../lib/annovar.bds"
+
+	//sys source "config/module.rc"
+
+	//------------- MAIN -------------//
+
+	// initialize
+	string{} multiParam = config(multiConfig)
+	string{} flagParam = config(flagConfig)
+	string{} refParam = config(refConfig)
+	string[] tids
+	string[] tid
+	string varfile
+	string annofile
+	string resultdir
+	string outdir
+	string logdir
+	string logfile
+
+	// assign values
+	if(multiParam.hasKey("multisample_result_dir")) { resultdir = multiParam{"multisample_result_dir"} }
+	if(multiParam.hasKey("multisample_log_dir")) { logdir = multiParam{"multisample_log_dir"} }
+	if(multiParam.hasKey(aligner + "_" + caller + "_varfile")) { varfile = multiParam{aligner + "_" + caller + "_varfile"} }
+	if(multiParam.hasKey(aligner + "_" + caller + "_annofile")) { annofile = multiParam{aligner + "_" + caller + "_annofile"} }
+
+	if(! resultdir.exists()) { resultdir.mkdir() }
+	outdir = resultdir + "/variant_annotation"
+	logfile = project + "." + aligner + "." + caller + ".annovar.log"
+
+	// println "$varfile"
+
+	// run start 	
+	tid = annovar(project, varfile, annofile, outdir, logfile, logdir, softwareConfig) 
+
+	wait 
+
+	// run end
+	println info("ExScaliburGMD::06_Run_VariantAnnotation", "END | proj=$project | aln=$aligner | clr=$caller")
+
+}
+

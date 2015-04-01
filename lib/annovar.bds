@@ -1,0 +1,193 @@
+#!/usr/bin/env bds
+
+include "print.bds"
+include "getmem.bds"
+
+string[] annovar(string sample, string infile, string outfile, string outdir, string logfile, string logdir, string softwareConfig){
+
+	// initialize
+	string{} swParam = config(softwareConfig)
+	string[] modlist
+	string modname = "ExScaliburGMD::annovar"
+	string modsource
+	string modload = ""
+	string convertExe
+	string tableAnnoExe
+	string genomeAssembly
+	int threads = 1
+	int memory = 1
+
+	// println info(modname, "START | proj=$sample")
+
+	string[] tids
+	string[] ins
+	string[] outs2
+	string[] outs3
+	string tid
+	string annovardir = outdir + "/annovar"
+	string annoProtocol = ""
+	string annoOperation = ""
+	string annoDB = ""
+	string infn = infile.split("/").pop().replace(".vcf","")
+	string in
+	string out1
+	string out2
+	string out3
+	string bindir
+	string outfileExonic = outfile.swapExt(".txt",".exonic.txt")
+	string binTotal
+	int bin 
+
+	// assign values
+	if(swParam.hasKey("main_module_source")) { modsource = swParam{"main_module_source"} }
+	if(swParam.hasKey("annovar_module")) { modlist.push(swParam{"annovar_module"}) }
+	if(swParam.hasKey("annovar_threads")) { threads = swParam{"annovar_threads"}.parseInt() }
+	if(swParam.hasKey("annovar_mem")) { memory = swParam{"annovar_mem"}.parseInt() }
+	if(swParam.hasKey("annovar_convert2annovar_exe")) { convertExe = swParam{"annovar_convert2annovar_exe"} }
+	if(swParam.hasKey("annovar_table_annovar_exe")) { tableAnnoExe = swParam{"annovar_table_annovar_exe"} }
+	if(swParam.hasKey("annovar_db")) { annoDB = swParam{"annovar_db"} }
+	if(swParam.hasKey("annovar_protocol")) { annoProtocol = swParam{"annovar_protocol"} }
+	if(swParam.hasKey("annovar_operation")) { annoOperation = swParam{"annovar_operation"} }
+	if(swParam.hasKey("annovar_genome_assembly")) { genomeAssembly = swParam{"annovar_genome_assembly"} }
+	if(swParam.hasKey("annovar_bin_size")) { bin = swParam{"annovar_bin_size"}.parseInt() }
+
+	if(modsource.length() > 0) { modload = ". $modsource; " }
+	for(string mod : modlist) { modload += "module load $mod; " }
+	memory = getmem(memory * G, threads)	
+
+	// out1 = annovardir + "/" + infile.split("/").pop().replace(".vcf",".annovar")
+	// out2 = out1 + "." + genomeAssembly + "_multianno.txt"
+
+	// run start
+	if(! outdir.isDir()) { outdir.mkdir() }
+	if(! logdir.isDir()) { logdir.mkdir() }	
+	if(! annovardir.isDir()) { annovardir.mkdir() }
+
+	if(outfile <- infile) { 
+		println info(modname, "task=run_annovar | proj=$sample | run=1")
+
+		// split input vcf
+		// binTotal = sys ls $annovardir/$infn.*.vcf | wc -l 
+		if("$annovardir/$infn.0.vcf" <- infile) {
+			println info(modname, "task=run_annovarSplit | proj=$sample | run=1")
+
+			sys awk -v f=$infn -v d=$annovardir '{ if($1~/^#/) { print > d"/"f".header" } else { print > d"/"f".body" } }' $infile
+			binTotal = sys awk -v b=$bin -v f=$infn -v d=$annovardir 'BEGIN {i=0;} { if( NR> b * (i+1) ){ i++; }; print $0 > d"/"f".body."i }; END{print i+1} ' $annovardir/$infn.body
+
+			for( int i=0; i< binTotal.parseInt(); i++) {
+				sys cat $annovardir/$infn.header $annovardir/$infn.body.$i > $annovardir/$infn.$i.vcf
+				sys rm $annovardir/$infn.body.$i
+			}
+
+			sys rm $annovardir/$infn.header $annovardir/$infn.body
+		}
+		else {
+			println info(modname, "task=run_annovarSplit | proj=$sample | run=0")
+			binTotal = sys ls $annovardir/$infn.*.vcf | wc -l 
+		}
+
+		// println "binTotal = $binTotal"
+
+		// run annovar on each bin
+		for( int i=0; i<binTotal.parseInt(); i++) {
+
+			logdirNew := logdir + "/annovar_split"
+			logfileNew := logfile.swapExt(".log",".$i.log")
+			in = annovardir + "/" + infn + "." + i + ".vcf"
+			bindir = annovardir + "/bins/" + in.split("/").pop().swapExt(".vcf","")
+			out1 = bindir + "/" + in.split("/").pop().swapExt(".vcf",".annovar")
+			out2 = out1 + "." + genomeAssembly + "_multianno.txt"
+			out3 = out2.swapExt(".txt",".exonic.txt")
+			outs2.push(out2)
+			outs3.push(out3)
+
+			if(! logdirNew.isDir()) { logdirNew.mkdir() }
+			if(! bindir.isDir()) { bindir.mkdir() }
+
+			if(out3 <- in) { 
+				println info(modname, "task=run_annovar_bin$i | proj=$sample | run=1")
+
+				tid = task(out3 <- in, cpus := threads, mem := memory, \
+					in.length() > 0) {
+					sys echo "$sample::annovarBin$i"
+					sys $modload
+					sys $convertExe --format vcf4old --includeinfo $in > $out1 2> $logdirNew/$logfileNew
+					sys $tableAnnoExe --otherinfo --buildver $genomeAssembly --protocol $annoProtocol --operation $annoOperation --outfile $out1 $out1 $annoDB >> $logdirNew/$logfileNew 2>&1
+					sys head -1 $out2 > $out3 2>> $logdirNew/$logfileNew
+					sys awk '$6 ~ /exonic|splicing|UTR/' $out2 >> $out3 2>> $logdirNew/$logfileNew
+				
+				}
+
+				tids.push(tid)	
+			} 
+			else {
+				println info(modname, "task=run_annovar_bin$i | proj=$sample | run=0")
+			}	
+
+		}
+
+		wait tids
+
+		// finally merge all threads
+		if(outfile <- outs2) { 
+			println info(modname, "task=run_annovar_merge | proj=$sample | run=1")
+
+			tids += AnnovarMerge(sample, infile, outfile, outs2, outs2.head(), threads, memory)
+		}
+		else {
+			println info(modname, "task=run_annovar_merge | proj=$sample | run=0")
+		}
+
+		if(outfileExonic <- outs3) { 
+			println info(modname, "task=run_annovar_mergeExonic | proj=$sample | run=1")
+
+			tids += AnnovarMerge(sample, infile, outfileExonic, outs3, outs3.head(), threads, memory)
+		}
+		else {
+			println info(modname, "task=run_annovar_mergeExonic | proj=$sample | run=0")
+		}
+
+	}
+	else {
+		println info(modname, "task=run_annovar | proj=$sample | run=0")
+	}
+
+	// println info(modname, " END | proj=$sample")
+
+	return tids
+}
+
+//------------- FUNCTION -------------//
+
+string[] AnnovarMerge(string sample, string infile, string outfile, string[] outs, string out, int threads, int memory) {
+
+	string[] tids
+	string[] outsNew
+	string tid
+	string headanno = sys awk '$1~/^Chr/ { printf $0 }' $out 
+	string headvcf = sys awk '$1~/^#CHROM/ { printf $0 }' $infile 
+	string inputString = ""
+
+	// println "out = $out"
+
+	for(string out : outs) { 
+		sys awk '$1~/^chr/' $out > $out.2
+		inputString += " $out.2"
+		outsNew.push("$out.2")
+	}
+
+	// println "inputString = $inputString"
+
+	tid = task(outfile <- outsNew, cpus := threads, mem := memory, \
+		outsNew.size() > 0) {
+		sys echo "$sample::annovarMerge"
+		sys echo -e "$headanno\t$headvcf" | perl -pe 's/\n//g;s/\tOtherinfo//' | awk '{print $0}' > $outfile.header
+		sys cat $outfile.header $inputString > $outfile
+		sys rm $outfile.header
+		
+	}
+
+	tids.push(tid)
+
+	return tids
+}

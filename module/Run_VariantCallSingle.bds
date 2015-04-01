@@ -1,0 +1,196 @@
+#!/usr/bin/env bds
+
+void Run_VariantCallSingle(string sample, string aligner, string caller, string projdir, string sampleConfig, string flagConfig, string refConfig, string softwareConfig, string ivcConfig) {
+
+	println info("ExScaliburGMD::04_Run_VariantCallSingle", "START | sm=$sample | aln=$aligner | clr=$caller")
+
+	//------------- INCLUDE -------------//
+
+	include "../lib/print.bds"
+	//include "../lib/header.bds"
+	include "../lib/samtools.bds"
+	include "../lib/picard.bds"
+	include "../lib/gatk.bds"
+	include "../lib/ivc.bds"
+	include "../lib/splitbybin.bds"
+	include "../lib/rgmap.bds"
+
+	//sys source "config/module.rc"
+
+	//------------- MAIN -------------//
+
+	// initialize
+	string{} smParam = config(sampleConfig)
+	string{} flagParam = config(flagConfig)
+	string{} refParam = config(refConfig)
+	string{} swParam = config(softwareConfig)
+	string{} smFailMap	
+	string[] tids
+	string[] tid
+	string[] binfiles
+	string infile
+	string outfile
+	string resultdir
+	string outdir
+	string logdir
+	string logfile
+	string refGenome
+	string targetfile
+	string callocifile
+	string target
+	string chrom
+	string binlist
+	string flagfile
+	int paired = 0
+	int runGatkCallableLoci = 0
+	int runTarget = 0
+	int splitByBin = 0
+	int forceIn = 0
+
+	// assign values
+	if(smParam.hasKey("paired")) { paired = smParam{"paired"}.parseInt() }
+	if(smParam.hasKey("sample_result_dir")) { resultdir = smParam{"sample_result_dir"} }
+	if(smParam.hasKey("sample_log_dir")) { logdir = smParam{"sample_log_dir"} }
+	if(smParam.hasKey(aligner + "_refine_alnfile")) { infile = smParam{aligner + "_refine_alnfile"} }
+	if(smParam.hasKey(aligner + "_" + caller + "_varfile")) { outfile = smParam{aligner + "_" + caller + "_varfile"} }
+	if(smParam.hasKey(aligner + "_callocifile")) { callocifile = smParam{aligner + "_callocifile"} }
+	if(smParam.hasKey("qc_flagfile")) { smFailMap = BuildRGmap(smParam{"qc_flagfile"}, "SM", "FAIL") }
+	if(smParam.hasKey("force_include")) { forceIn = smParam{"force_include"}.parseInt() }
+	if(refParam.hasKey("hg19_genome")) { refGenome = refParam{"hg19_genome"} }
+	if(flagParam.hasKey("run_gatk_callableloci")) { runGatkCallableLoci = flagParam{"run_gatk_callableloci"}.parseInt() }
+	if(flagParam.hasKey("run_target")) { runTarget = flagParam{"run_target"}.parseInt() }
+	if(swParam.hasKey("main_split_by_bin")) { splitByBin = swParam{"main_split_by_bin"}.parseInt() }
+
+	outdir = resultdir + "/variant_calls"
+
+	if(! resultdir.exists()) { resultdir.mkdir() }
+	if(! outdir.exists()) { outdir.mkdir() }
+	if((caller != "SplitCollableLoci") && (! "$outdir/$caller".exists())) { "$outdir/$caller".mkdir() }
+
+	flagfile = resultdir + "/sample.exclude"
+
+	// check whethe this rg passes QC
+	if(forceIn == 1) {
+			if(flagfile.exists()) { flagfile.delete() }
+		}
+	else if(forceIn == 0) {
+		if((sample == "") || (smFailMap.hasKey("$sample"))) { 
+			println info("ExScaliburGMD::04_Run_VariantCallSingle", "sm=$sample | aln=$aligner | clr=$caller | QC failed! Skip")
+			return
+		}
+	}
+
+	// First decide target file...
+	if((runGatkCallableLoci == 1) && (callocifile.length() > 0)) {
+		target = callocifile
+	}	
+	else {
+		target = targetfile
+	}
+
+	if(splitByBin == 1) {
+
+		binlist = target.replace(".bed",".bins.list")
+
+		// split by bin before variant calling...
+		if(caller == "SplitCollableLoci") {
+			logfile = sample + "." + aligner + ".splitbybin.log"
+			outfileNew := target.replace(".bed",".bins.txt")		
+			tid = splitbybin(sample, outdir + "/targets", binlist, target, outfileNew, outdir, logfile, logdir, softwareConfig)
+
+			// println "binlist = $binlist"
+			// printArray(binfiles)
+
+			wait tid
+		}
+
+		binfiles = binlist.readLines()
+	}
+
+	// if(splitByBin) { printArray(binfiles) }
+	// println "Run_VariantCallSingle: \n-- $sample: $caller \n-- splitByBin = $splitByBin \n-- target = $target"
+
+	// run start 
+	if(caller != "MergeCollableLoci") {
+
+		// run GATK variant calling (per sample)
+		if((caller == "gatkhc") || (caller == "gatkug")) {
+			util := "VarCall"
+
+			if(splitByBin == 1) {
+				string[] pids 
+				string[] infiles
+
+				// run bins only if the outfile is older or absent
+				// println "infile = $infile\noutfile = $outfile"
+				if((infile != "") && (outfile <- infile)) {
+					println info("ExScaliburGMD::04_Run_VariantCallSingle", "task=callByBin | sm=$sample | aln=$aligner | clr=$caller | run=1")
+
+					logdir += "/" + caller + "_split"
+					if(! "$outdir/$caller/bins".exists()) { "$outdir/$caller/bins".mkdir() }
+					for(string binfile : binfiles){
+						array := binfile.split("/").pop().swapExt(".bed","").replace(".","!").split("!")
+						bin := array.pop()
+						bin = array.pop() + "." + bin
+						// println "bin = $bin"
+
+						// call variant in each bin
+						outdirNew := outdir + "/" + caller + "/bins/" + bin
+						outfileNew := outdirNew + "/" + outfile.split("/").pop().swapExt(".gvcf",".$bin.gvcf")
+						logfile = sample + "." + aligner + "." + caller + "." + bin + ".log"
+						infiles.push(outfileNew)
+						pid := par gatk(sample, util, caller, chrom,  outdir + "/" + caller + "/tmp", binfile, infile, outfileNew, outdirNew, logfile, logdir, softwareConfig, refConfig)
+						pids.push(pid)
+					}
+
+					wait pids
+
+					// merge variants from each bin 
+					logfile = sample + "." + aligner + "." + caller + ".mergebybin.log"
+					tids += gatk(sample, "VarConcat", caller, chrom, outdir + "/" + caller + "/tmp", target, infiles.join(","), outfile, outdir + "/" + caller, logfile, logdir.swapExt("/${caller}_split",""), softwareConfig, refConfig)
+				}
+				else {
+					println info("ExScaliburGMD::04_Run_VariantCallSingle", "task=callByBin | sm=$sample | aln=$aligner | clr=$caller | run=0")
+				}
+			}
+			else {
+				logfile = sample + "." + aligner + "." + caller + ".log"
+				tid = gatk(sample, util, caller, chrom, outdir + "/tmp", target, infile, outfile, outdir, logfile, logdir, softwareConfig, refConfig)
+
+				tids += tid
+			}
+		}
+		// run IVC variant calling (per sample)
+		else if(caller == "ivc") {
+
+			// if target file is specified, first generate a target.bam file from the original bam
+			// then call variants on target only! IVC can't take target.bed as region.
+			if(target.length() > 0) {
+				util := "RetrieveOnTarget"
+				infileNew := infile.swapExt("bam","target.bam")
+				logfile = sample + "." + aligner + ".samtools_" + util + ".log"
+				tid = samtools(sample, util, refGenome, target, paired, infile, infileNew, outdir, logfile, logdir, softwareConfig) 
+
+				wait tid
+
+				infile = infileNew
+			}
+
+			// note that the existence of a file depends on its parental directory; do NOT use "/../" to point to a file; use direct path!
+			logfile = sample + "." + aligner + "." + caller + ".log"
+			// IVC requires its output directory not exist and I remove it before hand everytime.
+			outdirivc := outdir + "/ivc/" + aligner 
+			if(! outdirivc.exists()) { outdirivc.mkdir() }
+			tid = ivc(sample, chrom, outdir + "/tmp", target, infile, outfile, outdirivc, logfile, logdir, softwareConfig, refConfig, ivcConfig)
+
+			tids += tid
+		}
+	}
+	
+	wait
+
+	// run end
+	println info("ExScaliburGMD::04_Run_VariantCallSingle", "END | sm=$sample | aln=$aligner | clr=$caller")
+
+}
+

@@ -1,0 +1,27 @@
+
+VERSION 0.5.0, 03/31/2015. 
+Initial release.
+
+Platform
+============
+1. Illumina single-end or paired-end sequencing
+
+Genomes
+============
+1. Homo sapiens (hg19)
+
+Aligners
+============
+1. BWA aln
+2. BWA mem
+3. Novoalign
+
+Variant callers
+============
+1. GATK HaplotypeCaller
+2. GATK UnifiiedGenotyper
+3. FreeBayes
+4. SAMtools mpileup/bcftools
+5. Issac Variant Caller (IVC)
+6. Platypus
+

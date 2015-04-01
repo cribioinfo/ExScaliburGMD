@@ -1,0 +1,91 @@
+#!/usr/bin/env bds
+
+include "print.bds"
+include "getmem.bds"
+
+string[] cutadapt(string sample, string readgroup, string infile, string outfile, string outdir, string logfile, string logdir, string softwareConfig) {
+
+	// initialize
+	string{} swParam = config(softwareConfig)
+	string[] modlist
+	string modname = "ExScaliburGMD::cutadapt"
+	string modsource
+	string modload = ""
+	string exe
+	string pigzExe
+	string mod
+	int threads = 1
+	int memory = 1
+
+	// println info(modname, "START | sm=$sample | rg=$readgroup")
+
+	string[] tids
+	string[] infiles = infile.split(",")
+	string[] outfiles = outfile.split(",")
+	string adapter
+	string in1
+	string out1
+	string adapterParam = ""
+	int infileTotal
+	int outfileTotal
+	int minLength = 30
+
+	// assign values
+	if(swParam.hasKey("java_module")) { modlist.push(swParam{"java_module"}) }
+	if(swParam.hasKey("main_module_source")) { modsource = swParam{"main_module_source"} }
+	if(swParam.hasKey("cutadapt_exe")) { exe = swParam{"cutadapt_exe"} }
+	if(swParam.hasKey("cutadapt_module")) { mod = swParam{"cutadapt_module"} }
+	if(swParam.hasKey("cutadapt_threads")) { threads = swParam{"cutadapt_threads"}.parseInt() }
+	if(swParam.hasKey("cutadapt_mem")) { memory = swParam{"cutadapt_mem"}.parseInt() }
+	if(swParam.hasKey("main_adapter_se")) { adapter = swParam{"main_adapter_se"} }
+	if(swParam.hasKey("cutadapt_min_length")) { minLength = swParam{"cutadapt_min_length"}.parseInt() }
+	if(swParam.hasKey("pigz_exe")) { pigzExe = swParam{"pigz_exe"} }
+	if(swParam.hasKey("pigz_module")) { modlist.push(swParam{"pigz_module"}) }
+
+	if(modsource.length() > 0) { modload = ". $modsource; " }
+	for(string mod : modlist) { modload += "module load $mod; " }
+	memory = getmem(memory * G, threads)
+	
+	infileTotal = infiles.size()
+	outfileTotal = outfiles.size()
+	in1 = infiles.head()
+	out1 = outfiles.head()
+
+	// sanity check
+	if((infileTotal != 1) || (outfileTotal != 1)) { 
+		error info(modname, "sm=$sample | rg=$readgroup | infiles and/or outfiles count incorrect! in=$infileTotal,out=$outfileTotal" ) 
+	}	
+
+	if(adapter.length() == 0) {
+		println info(modname, "sm=$sample | rg=$readgroup | Warning! SE adapter missing. Use [AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTA] as default")
+		adapter = "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTA"
+	}
+	
+	// run start
+	if(! outdir.isDir()) { outdir.mkdir() }	
+	if(! logdir.isDir()) { logdir.mkdir() }	
+
+	if(outfiles <- infiles) { 
+		println info(modname, "task=run_preproc | sm=$sample | rg=$readgroup | run=1")
+
+		tid := task(outfiles <- infiles, cpus := threads, mem := memory, \
+			in1.length() > 0) {
+			sys echo "$sample::$readgroup::cutadapt"
+			sys set -o pipefail
+			sys module load $mod
+			sys $exe -m $minLength -a $adapter $in1 2> $logdir/$logfile | $pigzExe -c -p $threads > $out1 2>> $logdir/$logfile
+			sys sleep $safeSleep
+		}
+
+		tids.push(tid)	
+	}
+	else {
+		println info(modname, "task=run_preproc | sm=$sample | rg=$readgroup | run=0")
+	}	
+
+	// run end	
+	// println info(modname, "END | sm=$sample | rg=$readgroup")
+
+	return tids
+}
+

@@ -1,0 +1,186 @@
+#!/usr/bin/env bds
+
+int safeSleep = 20
+
+//------------- INCLUDE -------------//
+
+include "lib/print.bds"
+include "module/Run_QualityControl.bds"
+include "module/Run_PreProcessing.bds"
+include "module/Run_Alignment.bds"
+include "module/Run_AlignmentRefinement.bds"
+include "module/Run_VariantCallSingle.bds"
+include "module/Run_VariantCallMulti.bds"
+include "module/Run_VariantAnnotation.bds"
+include "module/Run_ReportGeneration.bds"
+
+//------------- MAIN -------------//
+
+// arguments
+string{} samplemap
+string[] pids 
+string[] samples help List of sample IDs, separated by space.
+string[] aligners help List of aligners, separated by space. Values include [bwamem bwaaln novoalign].
+string[] callers help List of variant callers, separated by space. Values include [gatkhc gatkug ivc mpileup freebayes platypus].
+string samplefile = "" help A file containing the list of samples IDs (one sample per line).
+string project = "myProject" help Project title. Default: myProject.
+string projdir = "." help Project output directory. Default: the current directory. 
+
+// project settings
+string cfgdir = projdir + "/configs/" + project + "_project"
+string flagConfig = cfgdir + "/" + project + ".flag.cfg"
+string refConfig = cfgdir + "/" + project + ".reference.cfg"
+string softwareConfig = cfgdir + "/" + project + ".software.cfg"
+string multiConfig = cfgdir + "/" + project + ".multisample.cfg"
+string ivcConfig = cfgdir + "/" + project + ".ivc.cfg"
+string chpdir = projdir + "/checkpoints/" + project + "_chp"
+
+// read sample list; remove redundant sample ids
+if(samplefile != "") { samples += samplefile.readLines() }
+for(string sm : samples) { samplemap{sm} = "" }
+samples = samplemap.keys() 
+
+// run start 
+CheckInput()
+PrintHeader()
+PrintInfo()
+
+println info("ExScaliburGMD", "START | proj=$project")
+
+for (string sample : samples) {
+	sampleConfig := projdir + "/configs/" + project + "_samples/" + sample + "/" + sample + ".cfg"
+	pid := par RunSample(sample, aligners, callers, projdir, sampleConfig, flagConfig, refConfig, softwareConfig, ivcConfig)
+	pids.push(pid)
+}
+
+wait pids
+
+pids = []
+for (string aligner : aligners) {
+	pid := par RunSampleMulti(project, aligner, callers, projdir, multiConfig, flagConfig, refConfig, softwareConfig, ivcConfig)
+	pids.push(pid)
+}
+
+wait pids 
+
+Run_ReportGeneration(project, projdir, multiConfig, flagConfig, refConfig, softwareConfig)
+
+wait
+
+// run end
+println info("ExScaliburGMD", "END | proj=$project")
+PrintFooter()
+
+//------------- FUNCTION -------------//
+
+void RunSample(string sample, string[] aligners, string[] callers, string projdir, string sampleConfig, string flagConfig, string refConfig, string softwareConfig, string ivcConfig) {
+	
+	string[] pids
+	string sampleConfig = projdir + "/configs/" + project + "_samples/" + sample + "/" + sample + ".cfg"
+
+	Run_QualityControl(sample, projdir, sampleConfig, flagConfig, refConfig, softwareConfig)
+	Run_PreProcessing(sample, projdir, sampleConfig, flagConfig, refConfig, softwareConfig)
+
+	for (string aligner : aligners) {
+		pid := par RunSampleAligner(sample, aligner, callers, projdir, sampleConfig, flagConfig, refConfig, softwareConfig, ivcConfig)
+		pids.push(pid)
+	}
+	
+	// wait pids 
+	sys sleep 10
+
+}
+
+void RunSampleAligner(string sample, string aligner, string[] callers, string projdir, string sampleConfig, string flagConfig, string refConfig, string softwareConfig, string ivcConfig) {
+
+	string[] pids
+
+	Run_Alignment(sample, aligner, projdir, sampleConfig, flagConfig, refConfig, softwareConfig)
+	Run_AlignmentRefinement(sample, aligner, projdir, sampleConfig, flagConfig, refConfig, softwareConfig)
+
+	// first split callable regions by bin
+	Run_VariantCallSingle(sample, aligner, "SplitCollableLoci", projdir, sampleConfig, flagConfig, refConfig, softwareConfig, ivcConfig)
+
+	for (string caller : callers) {
+		if((caller == "gatkhc") || (caller == "ivc")) {
+			pid := par Run_VariantCallSingle(sample, aligner, caller, projdir, sampleConfig, flagConfig, refConfig, softwareConfig, ivcConfig)
+			pids.push(pid)
+		}
+	}
+
+	// wait pids 
+	sys sleep 10
+
+}
+
+void RunSampleMulti(string project, string aligner, string[] callers, string projdir, string multiConfig, string flagConfig, string refConfig, string softwareConfig, string ivcConfig) {
+
+	string[] pids
+
+	// first merge callable regions across samples
+	Run_VariantCallMulti(project, aligner, "MergeCollableLoci", projdir, multiConfig, flagConfig, refConfig, softwareConfig, ivcConfig)
+
+	// then call variants
+	for(string caller : callers) {
+		pid := par RunSampleMultiCall(project, aligner, caller, projdir, multiConfig, flagConfig, refConfig, softwareConfig, ivcConfig)
+	}
+
+	// wait pids 
+	sys sleep 10 
+
+}
+
+void RunSampleMultiCall(string project, string aligner, string caller, string projdir, string multiConfig, string flagConfig, string refConfig, string softwareConfig, string ivcConfig) {
+
+	Run_VariantCallMulti(project, aligner, caller, projdir, multiConfig, flagConfig, refConfig, softwareConfig, ivcConfig)
+	Run_VariantAnnotation(project, aligner, caller, projdir, multiConfig, flagConfig, refConfig, softwareConfig)
+
+	sys sleep 10 
+
+}
+
+void PrintHeader() {
+	println "\n--------------------------------------------------------------------------------"
+	sys echo "Pipeline START: "`date`
+	println "--------------------------------------------------------------------------------"
+}
+
+void PrintFooter() {
+	println "--------------------------------------------------------------------------------"
+	sys echo "Pipeline END: "`date`
+	println "--------------------------------------------------------------------------------"
+
+}
+
+void PrintInfo() {
+
+    println "Project Title     = [ $project ]"
+	println "Project Directory = [ $projdir ]"
+	print "Samples           = [ "
+	print samples.join(" ")
+	println " ]"
+	print "Aligners          = [ "
+	print aligners.join(" ")
+	println " ]"
+	print "Callers           = [ " 
+	print callers.join(" ")
+	println " ]"
+	// println "BDS config        = [ $config ]"
+	println "BDS retry         = [ $retry ]"
+	println  "BDS system        = [ $system ] (if empty, BDS is running local)"
+	println "--------------------------------------------------------------------------------"
+}
+
+void CheckInput() {
+	if(samples.size() == 0) {
+	error info("ExScaliburGMD", "Sample list is empty. Program terminated!")
+	}
+	if(aligners.size() == 0) {
+		println info("ExScaliburGMD", "Aligner list is empty. -bwamem is switched on by default. Program continue.")
+	}
+	if(callers.size() == 0) {
+		println info("ExScaliburGMD", "Caller list is empty. -gatkhc is switched on by default. Program continue.")
+	}
+
+}
+

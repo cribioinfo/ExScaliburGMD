@@ -1,0 +1,99 @@
+#!/usr/bin/env bds
+
+include "print.bds"
+include "getmem.bds"
+
+string[] seqprep(string sample, string readgroup, string infile, string outfile, string outdir, string logfile, string logdir, string softwareConfig) {
+
+	// initialize
+	string{} swParam = config(softwareConfig)
+	string modname = "ExScaliburGMD::seqprep"
+	string[] modlist
+	string exe
+	string modsource
+	string modload = ""
+	int threads = 1
+	int memory = 1
+	int fastqFormat = 33
+
+	// println info(modname, "START | sm=$sample | rg=$readgroup")
+
+	string[] tids
+	string[] infiles = infile.split(",")
+	string[] outfiles = outfile.split(",")
+	string[] adapters
+	string in1
+	string in2
+	string out1
+	string out2
+	string out3
+	string adp1
+	string adp2
+	string formatParam = ""
+	string adapterParam = ""
+	int infileTotal
+	int outfileTotal
+	int minLength = 30
+
+	// assign values
+	if(swParam.hasKey("java_module")) { modlist.push(swParam{"java_module"}) }
+	if(swParam.hasKey("main_module_source")) { modsource = swParam{"main_module_source"} }
+	if(swParam.hasKey("main_fastq_format")) { fastqFormat = swParam{"main_fastq_format"}.parseInt() }
+	if(swParam.hasKey("seqprep_exe")) { exe = swParam{"seqprep_exe"} }
+	if(swParam.hasKey("seqprep_module")) { modlist.push(swParam{"seqprep_module"}) }
+	if(swParam.hasKey("seqprep_threads")) { threads = swParam{"seqprep_threads"}.parseInt() }
+	if(swParam.hasKey("seqprep_mem")) { memory = swParam{"seqprep_mem"}.parseInt() }
+	if(swParam.hasKey("main_adapter_pe")) { adapters = swParam{"main_adapter_pe"}.split(",") }
+	if(swParam.hasKey("seqprep_min_length")) { minLength = swParam{"seqprep_min_length"}.parseInt() }
+
+	if(modsource.length() > 0) { modload = ". $modsource; " }
+	for(string mod : modlist) { modload += "module load $mod; " }
+	memory = getmem(memory * G, threads)
+
+	infileTotal = infiles.size()
+	outfileTotal = outfiles.size()
+	(in1, in2) = infiles
+	(out1, out2, out3) = outfiles
+	(adp1, adp2) = adapters
+
+	// sanity check
+	if((infileTotal != 2) || (outfileTotal != 3)) { 
+		error info(modname, "sm=$sample | rg=$readgroup | infiles and/or outfiles count incorrect! in=$infileTotal,out=$outfileTotal" ) 
+	}	
+
+	// set format parameter
+	if(fastqFormat == 64) { formatParam = " -6" }
+	else if(fastqFormat != 33) {
+		println info(modname, "sm=$sample | rg=$readgroup | Warning! fastq format is neither 33 nor 64. Use [33] as default")
+	}
+
+	// set adapter parameter
+	if((adp1.length() > 0) && (adp2.length() > 0)) {
+		adapterParam = " -A $adp1 -B $adp2"
+	}
+
+	// run start
+	if(! outdir.isDir()) { outdir.mkdir() }	
+	if(! logdir.isDir()) { logdir.mkdir() }	
+
+	if(outfiles <- infiles) { 
+		println info(modname, "task=run_preproc | sm=$sample | rg=$readgroup | run=1")
+
+		tid := task(outfiles <- infiles, cpus := threads, mem := memory, \
+			in1.length() > 0, in2.length() > 0) {
+			sys echo "$sample::$readgroup::seqprep"
+			sys $modload
+			sys $exe $formatParam -L $minLength -f $in1 -r $in2 $adapterParam -1 $out1 -2 $out2 -s $out3 >& $logdir/$logfile
+		}
+
+		tids.push(tid)	
+	}
+	else {
+		println info(modname, "task=run_preproc | sm=$sample | rg=$readgroup | run=0")
+	}	
+
+	// run end	
+	// println info(modname, "END | sm=$sample | rg=$readgroup")
+
+	return tids
+}
