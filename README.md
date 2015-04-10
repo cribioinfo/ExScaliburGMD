@@ -49,8 +49,8 @@ Please see the [Wiki](https://bitbucket.org/cribioinformatics/exscaliburgmd/wiki
 
 # Communication #
 
-For pipeline questions, please contact Riyue Bao at <rbao@uchicago.edu>.
-For other general questions, please contact CRI bioinformatics team at <bioinformatics@bsd.uchicago.edu>.
+For pipeline questions, please contact Riyue Bao at <rbao at uchicago dot edu>.
+For other general questions, please contact CRI bioinformatics team at <bioinformatics at bsd dot uchicago dot edu>.
 
 # Release #
 
