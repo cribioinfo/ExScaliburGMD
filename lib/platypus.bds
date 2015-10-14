@@ -128,10 +128,17 @@ string[] platypus(string sample, string chr, string tmpdir, string targetfile, s
 
 		// Note that although Platypus manual says --regions=intervalString and --regions=intervalFile 
 		// both work, I tested both and the latter does NOT work. Only works with intervalString.
-		intervalString = interval.readLines().join(",")
+		// intervalString = interval.readLines().join(",")
 
 		// Note that platypus will run without error even though --region was not correctly set.
 		// and it will generate a vcf with no variants detected (but the outfile will be printed!!)
+
+		// Update 09/16/2015
+		// Finally I figured out WHY platypus 0.8.1 (latest version) --regions does NOT work with files. Because it requires 
+		// ".txt" file extension, otherwise it does NOT know this is a file NOT a string!!!
+		intervalString = interval.swapExt(".interval",".txt")
+		intervalFilename := interval.split("/").pop()
+		sys if [ ! -e $intervalString ]; then ln -s $intervalFilename $intervalString; fi 
 
 		// then call variants
 		tid = task(outfile <- infiles, cpus := threads, mem := memory, \

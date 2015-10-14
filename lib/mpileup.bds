@@ -109,17 +109,34 @@ string[] mpileup(string sample, string chr, string tmpdir, string targetfile, st
 		if(xargs == 0) {
 			outfn = outdir + "/" + outfn
 
-			tid = task(outfile <- infiles, cpus := 1, mem := memory, \
+			tid = task(outfn + ".raw.vcf" <- infiles, cpus := 1, mem := memory, \
 				infileTotal > 0) {
 				sys echo "$sample::mpileup"
 				sys $modload
 				sys echo "Running mpileup ..." > $logdir/$logfile
 				sys echo -e "$inputString" > $infilelist
-				sys $mpileupExe -SDuf $refGenome -m $minIndelReadCnt -F 0.0002 -M 99 -q $minMapQ -Q $minBaseQ $targetParam -b $infilelist 2>> $logdir/$logfile | $bcftoolsExe view -N -vceg - 2>> $logdir/$logfile | $vcfutilsExe varFilter -d $minDepth -D $maxDepth -a $minVarReadCnt - > $outfn.raw.vcf 2>> $logdir/$logfile	
-				
-				sys sleep 1
-				sys echo "Normalize variants ..." >> $logdir/$logfile
-				sys cat $outfn.raw.vcf | $vcflibExe/vcfallelicprimitives --keep-info --keep-geno 2>> $logdir/$logfile | $vtExe normalize -r $refGenome - > $outfn.raw.norm.vcf 2>> $logdir/$logfile
+				// samtools 0.1.19 or earlier
+				// sys $mpileupExe -SDuf $refGenome -m $minIndelReadCnt -F 0.0002 -M 99 -q $minMapQ -Q $minBaseQ $targetParam -b $infilelist 2>> $logdir/$logfile | $bcftoolsExe view -N -vceg - 2>> $logdir/$logfile | $vcfutilsExe varFilter -d $minDepth -D $maxDepth -a $minVarReadCnt - > $outfn.raw.vcf 2>> $logdir/$logfile	
+				// samtools 1.2 or later
+				sys $mpileupExe -b $infilelist -d $maxDepth -f $refGenome $targetParam -q $minMapQ -Q $minBaseQ -F 0.0002 -m $minIndelReadCnt -t DP,DPR,DV,DP4,INFO/DPR,SP -ug 2>> $logdir/$logfile | $bcftoolsExe call -f GQ,GP -O v -o $outfn.raw.vcf -vm 2>> $logdir/$logfile
+
+				sys echo "... Done!" >> $logdir/$logfile
+				sys sleep $safeSleep
+			}
+
+			wait tid
+
+			tid = task(outfile <- outfn + ".raw.vcf", cpus := 1, mem := memory, \
+				infileTotal > 0) {
+				sys echo "$sample::mpileup::norm"
+				sys $modload
+				// Update 09/17/2015:
+				// Found out that vt norm is case sensitive, and it may generate entries like this: REF=c, ALT=C [lower-case]
+				// from normalizing indels ... so we need to remove rows if REF or ALT contains lower-case letters
+				// otherwise vt norm does NOT work correctly
+				// Note that samtools/1.2 has vcf4.2 header and GATK does NOT like it
+				sys echo "Normalize variants ... (after removing lines with REF/ALT lowercase and VCF4.2 metainfo)" >> $logdir/$logfile
+				sys awk '$1 ~ /^#/ || ($1 !~ /^#/ && $4 !~ /[acgtn]/ && $5 !~ /[acgtn]/)' $outfn.raw.vcf 2>> $logdir/$logfile | sed 's/fileformat=VCFv4.2/fileformat=VCFv4.1/;s/,Version=3>/>/;s/,Version=\"3\">/>/;s/Number=R/Number=./' | $vcflibExe/vcfallelicprimitives --keep-info --keep-geno 2>> $logdir/$logfile | $vtExe normalize -r $refGenome - > $outfn.raw.norm.vcf 2>> $logdir/$logfile
 				sys sleep 1
 				sys echo "Reordering chrom to be consistent with genome.dict ..." >> $logdir/$logfile
 				sys $vcfsorterExe $refGenomeDict $outfn.raw.norm.vcf > $outfile 2>> $logdir/$logfile
@@ -148,7 +165,11 @@ string[] mpileup(string sample, string chr, string tmpdir, string targetfile, st
 				sys echo -e "$inputString" > $infilelist
 				sys $vcfutilsExe splitchr -l $bin $refGenome.fai > $binlist
 				sys if [ -e $logdir/$logfile ]; then rm $logdir/$logfile; fi
-				sys cat $binlist | xargs -I {} -n 1 -P $threads sh -c "$mpileupExe -SDuf $refGenome -m $minIndelReadCnt -F 0.0002 -M 99 -q $minMapQ -Q $minBaseQ -r {} -b $infilelist 2>> $logdir/$logfile | $bcftoolsExe view -N -vceg - 2>> $logdir/$logfile | $vcfutilsExe varFilter -d $minDepth -D $maxDepth -a $minVarReadCnt - > $tmpdir/$outfn.{}.vcf 2>> $logdir/$logfile"
+				// samtools 0.1.19 or earlier
+				// sys cat $binlist | xargs -I {} -n 1 -P $threads sh -c "$mpileupExe -SDuf $refGenome -m $minIndelReadCnt -F 0.0002 -M 99 -q $minMapQ -Q $minBaseQ -r {} -b $infilelist 2>> $logdir/$logfile | $bcftoolsExe view -N -vceg - 2>> $logdir/$logfile | $vcfutilsExe varFilter -d $minDepth -D $maxDepth -a $minVarReadCnt - > $tmpdir/$outfn.{}.vcf 2>> $logdir/$logfile"
+				// samtools 1.2 or later
+				sys cat $binlist | xargs -I {} -n 1 -P $threads sh -c "$mpileupExe -b $infilelist -d $maxDepth -f $refGenome $targetParam -q $minMapQ -Q $minBaseQ -F 0.0002 -m $minIndelReadCnt -t DP,DPR,DV,DP4,INFO/DPR,SP -ug 2>> $logdir/$logfile | $bcftoolsExe call -f GQ,GP -O v -o $outfn.raw.vcf -vm 2>> $logdir/$logfile"
+
 				//cat output files
 				sys grep "^#" $tmpdir/$outfn.`head -1 $binlist`.vcf > $outfile.header
 				// for loop does not work within sys... variable $string can't be masked
@@ -158,8 +179,9 @@ string[] mpileup(string sample, string chr, string tmpdir, string targetfile, st
 			}
 			// this wait is required!!! otherwise the next step will start without waiting...WHY?
 			wait tid
+			
 			if(outfile <- outfile + ".header") {
-				sys echo "Merge variants ..." >> $logdir/$logfile
+				sys echo "Merge variants ... (after removing lines with REF/ALT lowercase and VCF4.2 metainfo)" >> $logdir/$logfile
 				bins := binlist.readLines()
 				sys cat $outfile.header > $outdir/$outfn.raw.vcf 2>> $logdir/$logfile
 				for(string bin : bins) {
@@ -172,7 +194,7 @@ string[] mpileup(string sample, string chr, string tmpdir, string targetfile, st
 				
 				sys sleep 1
 				sys echo "Normalize variants ..." >> $logdir/$logfile
-				sys cat $outfn.raw.vcf | $vcflibExe/vcfallelicprimitives --keep-info --keep-geno 2>> $logdir/$logfile | $vtExe normalize -r $refGenome - > $outfn.raw.norm.vcf 2>> $logdir/$logfile
+				sys awk '$1 ~ /^#/ || ($1 !~ /^#/ && $4 !~ /[acgtn]/ && $5 !~ /[acgtn]/)' $outfn.raw.vcf 2>> $logdir/$logfile | sed 's/fileformat=VCFv4.2/fileformat=VCFv4.1/;s/,Version=3>/>/;s/,Version=\"3\">/>/;s/Number=R/Number=./' | $vcflibExe/vcfallelicprimitives --keep-info --keep-geno 2>> $logdir/$logfile | $vtExe normalize -r $refGenome - > $outfn.raw.norm.vcf 2>> $logdir/$logfile
 				sys sleep 1
 				sys echo "Reordering chrom to be consistent with genome.dict ..." >> $logdir/$logfile
 				sys $vcfsorterExe $refGenomeDict $outfn.raw.norm.vcf > $outfile 2>> $logdir/$logfile

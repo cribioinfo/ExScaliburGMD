@@ -204,7 +204,9 @@ string[] gatk(string sample, string util, string caller, string chr, string tmpd
 					memoryNew = memory * threads
 				}
 				
-				if(infileTotal == 1) {
+				// if(infileTotal == 1) {
+				if((infileTotal == 1) && infiles[0].endsWith(".bam")) {
+
 					// run HC on each sample to generate gvcf file
 					// per-sample variant calling only applies for HC; UC still performs multi-sample variant calling)
 					// println "gatkVariantCall: Run HC on each sample to generate gvcf file"
@@ -213,8 +215,10 @@ string[] gatk(string sample, string util, string caller, string chr, string tmpd
 
 					tids += tidsNew
 				}
-				else if(infileTotal >= 2) { 
-					
+				// Could be running multi but only one sample is available!
+				// else if(infileTotal >= 2) { 
+				else if((infileTotal >= 1) && infiles[0].endsWith(".gvcf")) { 
+	
 					tidsNew := GatkGenotypeGVCFs(sample, infile, outfile, logfile, logdir, tmpdir, modname, modload, threadsNew, memoryNew, gatkExe, samtoolsExe, javaMaxMemStr, refGenome, refGenomeDict, targetParam, knownVarParam)
 
 					tids += tidsNew
@@ -465,11 +469,16 @@ string[] GatkGenotypeGVCFs(string sample, string infile, string outfile, string 
 				sys $modload
 				sys echo "Running gatkGenotypeGVCFs ..." > $logdir/$logfile
 				sys $baseJava $javaMaxMemStr -Djava.io.tmpdir=$tmpdir -jar $gatkExe -T GenotypeGVCFs --disable_auto_index_creation_and_locking_when_reading_rods -R $refGenome -nt $threads $targetParam $knownVarParam $inputString -o $outfn.raw.vcf >> $logdir/$logfile 2>&1
-				sys echo "Normalize variants ..." >> $logdir/$logfile
-				sys cat $outfn.raw.vcf | $vcflibExe/vcfallelicprimitives --keep-info --keep-geno 2>> $logdir/$logfile | $vtExe normalize -r $refGenome - > $outfn.norm.vcf 2>> $logdir/$logfile
+				// Ever since GATK 3.4.0, vcf norm has wired behavior in field ALT for indels: 
+				// e.g. changing "T,<*:DEL>" to "<,<*:DEL>,T".
+				// As a result, GATK CombineVariants will complain: unparsable vcf record with allele <
+				// So skipping the norm step (GATK-generated vcf should not need those!)
+				// sys echo "Normalize variants ..." >> $logdir/$logfile
+				// sys cat $outfn.raw.vcf | $vcflibExe/vcfallelicprimitives --keep-info --keep-geno 2>> $logdir/$logfile | $vtExe normalize -r $refGenome - > $outfn.norm.vcf 2>> $logdir/$logfile
 				sys echo "Reordering chrom to be consistent with genome.dict ..." >> $logdir/$logfile
 				sys if [ -e $outfile ]; then mv $outfile $outfile.bak; fi 
-				sys $vcfsorterExe $refGenomeDict $outfn.norm.vcf > $outfile 2>> $logdir/$logfile
+				// sys $vcfsorterExe $refGenomeDict $outfn.norm.vcf > $outfile 2>> $logdir/$logfile
+				sys $vcfsorterExe $refGenomeDict $outfn.raw.vcf > $outfile 2>> $logdir/$logfile
 				sys echo "... Done!" >> $logdir/$logfile
 				sys sleep $safeSleep
 			}
@@ -505,11 +514,16 @@ string[] GatkUnifiedGenotyper(string sample, string infile, string outfile, stri
 			sys $modload
 			sys echo "Running gatkUnifiedGenotyper ..." > $logdir/$logfile
 			sys $baseJava $javaMaxMemStr -Djava.io.tmpdir=$tmpdir -jar $gatkExe -T UnifiedGenotyper -R $refGenome -nct $threads -gt_mode DISCOVERY -stand_call_conf $callConf -stand_emit_conf $emitConf -mbq $minBaseQ --disable_auto_index_creation_and_locking_when_reading_rods -ploidy $ploidy -glm BOTH -dcov $dcov -minIndelCnt $minIndelCnt -minIndelFrac $minIndelFrac -out_mode EMIT_VARIANTS_ONLY $targetParam $knownVarParam $inputString -o $outfn.raw.vcf >> $logdir/$logfile 2>&1
-			sys echo "Normalize variants ..." >> $logdir/$logfile
-			sys cat $outfn.raw.vcf | $vcflibExe/vcfallelicprimitives --keep-info --keep-geno 2>> $logdir/$logfile | $vtExe normalize -r $refGenome - > $outfn.norm.vcf 2>> $logdir/$logfile
+			// Ever since GATK 3.4.0, vcf norm has wired behavior in field ALT for indels: 
+			// e.g. changing "T,<*:DEL>" to "<,<*:DEL>,T".
+			// As a result, GATK CombineVariants will complain: unparsable vcf record with allele <
+			// So skipping the norm step (GATK-generated vcf should not need those!)
+			// sys echo "Normalize variants ..." >> $logdir/$logfile
+			// sys cat $outfn.raw.vcf | $vcflibExe/vcfallelicprimitives --keep-info --keep-geno 2>> $logdir/$logfile | $vtExe normalize -r $refGenome - > $outfn.norm.vcf 2>> $logdir/$logfile
 			sys echo "Reordering chrom to be consistent with genome.dict ..." >> $logdir/$logfile
 			sys if [ -e $outfile ]; then mv $outfile $outfile.bak; fi 
-			sys $vcfsorterExe $refGenomeDict $outfn.norm.vcf > $outfile 2>> $logdir/$logfile
+			// sys $vcfsorterExe $refGenomeDict $outfn.norm.vcf > $outfile 2>> $logdir/$logfile
+			sys $vcfsorterExe $refGenomeDict $outfn.raw.vcf > $outfile 2>> $logdir/$logfile
 			sys echo "... Done!" >> $logdir/$logfile
 			sys sleep $safeSleep
 			
@@ -618,7 +632,7 @@ string[] GatkVariantFlt(string sample, string infile, string outfile, string log
 		else{
 			// print a warning instead of exit (because for gatk VariantFiltration, sometimes the variant rows will differ by a small amount)
 			// error info(modname, " task=run_CheckVCFflt | sm=$sample | caller=$caller | CheckVCFflt failed. infile total line number inconsistent before and after filtration! Program termined.\n")
-			println info(modname, " task=run_CheckVCFflt | sm=$sample | caller=$caller | WARNING! CheckVCFflt failed. infile total line number inconsistent before and after filtration! Program termined.\n")
+			println info(modname, " task=run_CheckVCFflt | sm=$sample | caller=$caller | WARNING! CheckVCFflt failed. infile total line number inconsistent before and after filtration! Program will continue anyway.\n")
 			// error "gatkVariantFlt: CheckVCFflt failed. infile total line number inconsistent before and after filtration! Program termined.\n"
 		}
 	}

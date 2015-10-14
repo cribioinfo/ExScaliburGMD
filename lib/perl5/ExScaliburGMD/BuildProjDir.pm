@@ -18,7 +18,7 @@ sub Build_Proj_Dir
 {
   my ($proj_dir, $project, $sample_list) = @_;
 
-  # Make_Dir("$proj_dir/checkpoints/$project\_chp");
+  Make_Dir("$proj_dir/checkpoints/$project\_chp");
 
   foreach my $sample (sort keys %{$sample_list}) {
     foreach my $dir (qw(configs logs results)) {
