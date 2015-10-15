@@ -1,3 +1,12 @@
+VERSION 0.5.1, 10/14/2015.
+
+Updates:
+- Updated samtools and bcftools to version 1.2,
+  with new variant calling option [-m]
+- Updated platypus to take a file of target 
+  regions [-r]
+- Fixed minor issues with GATK variant calling
+
 
 VERSION 0.5.0, 03/31/2015. 
 Initial release.
