@@ -100,7 +100,8 @@ sub Open_File
 		chomp($line);
 		my @line = split(/\t/, $line);
 
-		if($line =~ m/^chr/) {
+		# if($line =~ m/^chr/) {
+		if($line[0] =~ m/^\w+/ && $line[1] =~ m/^\d+$/ && $line[2] =~ m/^\d+$/) {
 			$i++;
 
 			my ($chr, $start, $end) = @line;
