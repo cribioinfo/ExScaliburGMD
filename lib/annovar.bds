@@ -171,7 +171,9 @@ string[] AnnovarMerge(string sample, string infile, string outfile, string[] out
 	// println "out = $out"
 
 	for(string out : outs) { 
-		sys awk '$1~/^chr/' $out > $out.2
+		// GRCh37 chroms does not have chr prefix
+		// sys awk '$1~/^chr/' $out > $out.2
+		sys awk '$1!~/^Chr/' $out > $out.2
 		inputString += " $out.2"
 		outsNew.push("$out.2")
 	}
