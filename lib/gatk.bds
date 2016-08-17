@@ -600,9 +600,11 @@ string[] GatkVariantFlt(string sample, string infile, string outfile, string log
 				sys echo "$sample::$caller::mergeFltSNPsAndInDels"
 				sys $modload
 				sys echo "++++++++ Merging snp and indel.flt.vcf using $vcftoolsExe ++++++++" >> $logdir/$logfile 2>&1
-				sys $vcftoolsExe/vcf-concat -p $infn.snp.flt.vcf.gz $infn.indel.flt.vcf.gz | $vcftoolsExe/vcf-sort -c -t $tmpdir > $outfile 2>> $logdir/$logfile
-				sys echo "++++++++ Generating vcf.idx using $igvToolsExe ++++++++" >> $logdir/$logfile 2>&1
-				sys $baseJava $javaMaxMemStr -Djava.io.tmpdir=$tmpdir -jar $igvToolsExe index $outfile >> $logdir/$logfile 2>&1
+				// igvtools and vcftools do not work on VCF v4.2! 08162016
+				// sys $vcftoolsExe/vcf-concat -p $infn.snp.flt.vcf.gz $infn.indel.flt.vcf.gz | $vcftoolsExe/vcf-sort -c -t $tmpdir > $outfile 2>> $logdir/$logfile
+				// sys echo "++++++++ Generating vcf.idx using $igvToolsExe ++++++++" >> $logdir/$logfile 2>&1
+				// sys $baseJava $javaMaxMemStr -Djava.io.tmpdir=$tmpdir -jar $igvToolsExe index $outfile >> $logdir/$logfile 2>&1
+				sys $baseJava $javaMaxMemStr -Djava.io.tmpdir=$tmpdir -jar $gatkExe -T CombineVariants -R $refGenome -V $infn.snp.flt.vcf.gz -V $infn.indel.flt.vcf.gz -o $outfile --assumeIdenticalSamples --suppressCommandLineHeader >> $logdir/$logfile 2>&1
 				sys echo "++++++++ Done! ++++++++" >> $logdir/$logfile 2>&1
 				sys sleep $safeSleep
 			}
